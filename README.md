@@ -36,7 +36,9 @@ Built in phases. Right now:
       and a 500-buyers-vs-100-tickets overselling proof under `-race`.
 - [ ] **Phase 2 — Frontend** (React + Vite + TS), generated client, cache and
       security practices.
-- [ ] **Phase 3 — The other six backends**, each passing the same contract tests.
+- [~] **Phase 3 — The other backends**, each passing the same contract tests.
+      **FastAPI** is done (same 16 tests, zero changes to the suite or frontend).
+      Remaining: NestJS, Express, Laravel, Symfony, Phalcon.
 - [ ] **Phase 4 — Resilience and observability**, live failure injection, dashboards,
       distributed tracing.
 - [ ] **Phase 5 — Scale**, load tests proving no overselling, horizontal scaling,
@@ -64,6 +66,10 @@ is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 - Fake payment gateway health: http://localhost:9090/health
 
 Demo credentials (seeded): `buyer@ticketing.local` / `password123`.
+
+Switch the active backend by editing one line in `.env` (`COMPOSE_PROFILES=go` or
+`fastapi`) and running `make up` again. The frontend, gateway, and contract do not
+change. See [ADR 0006](docs/adr/0006-backend-switching-via-compose-profiles.md).
 
 ```bash
 # log in, then list events
