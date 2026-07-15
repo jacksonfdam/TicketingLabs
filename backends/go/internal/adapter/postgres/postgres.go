@@ -53,12 +53,21 @@ type EventRepo struct{ Pool *pgxpool.Pool }
 // List paginates by cursor (the last seen id). Ordering by id is stable, which is what
 // cursor pagination needs; offset pagination would drift as rows are inserted.
 func (r EventRepo) List(ctx context.Context, cursor string, limit int) ([]domain.Event, string, error) {
-	rows, err := r.Pool.Query(ctx,
-		`SELECT id, name, venue, starts_at, sales_open_at, status
-		   FROM events
-		  WHERE ($1 = '' OR id > $1)
-		  ORDER BY id
-		  LIMIT $2`, cursor, limit+1)
+	// Branch on the cursor rather than a single query with an OR: the id column is a
+	// uuid, and comparing it against an empty text placeholder is a type error. When a
+	// cursor is present it is cast to uuid explicitly.
+	const cols = `id, name, venue, starts_at, sales_open_at, status`
+	var (
+		rows pgx.Rows
+		err  error
+	)
+	if cursor == "" {
+		rows, err = r.Pool.Query(ctx,
+			`SELECT `+cols+` FROM events ORDER BY id LIMIT $1`, limit+1)
+	} else {
+		rows, err = r.Pool.Query(ctx,
+			`SELECT `+cols+` FROM events WHERE id > $1::uuid ORDER BY id LIMIT $2`, cursor, limit+1)
+	}
 	if err != nil {
 		return nil, "", err
 	}
