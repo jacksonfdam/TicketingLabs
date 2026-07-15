@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -65,6 +66,11 @@ func (r EventRepo) List(ctx context.Context, cursor string, limit int) ([]domain
 		rows, err = r.Pool.Query(ctx,
 			`SELECT `+cols+` FROM events ORDER BY id LIMIT $1`, limit+1)
 	} else {
+		// The cursor is the last seen id, so it must be a uuid. A malformed cursor is a
+		// client error (400), not a reason to hand Postgres bad input and return 500.
+		if _, perr := uuid.Parse(cursor); perr != nil {
+			return nil, "", domain.ErrBadRequest
+		}
 		rows, err = r.Pool.Query(ctx,
 			`SELECT `+cols+` FROM events WHERE id > $1::uuid ORDER BY id LIMIT $2`, cursor, limit+1)
 	}

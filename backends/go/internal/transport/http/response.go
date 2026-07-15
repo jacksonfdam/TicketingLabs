@@ -19,6 +19,8 @@ const (
 // one place so every handler reports the same code for the same failure.
 func statusFor(code string) int {
 	switch code {
+	case domain.ErrBadRequest.Code:
+		return http.StatusBadRequest
 	case domain.ErrInvalidCredentials.Code, domain.ErrInvalidToken.Code:
 		return http.StatusUnauthorized
 	case domain.ErrForbidden.Code, domain.ErrNotAdmitted.Code:

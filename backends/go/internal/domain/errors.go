@@ -19,6 +19,7 @@ var (
 	ErrInvalidToken       = newErr("invalid_token", "Token is missing, expired, or invalid")
 	ErrForbidden          = newErr("forbidden", "You are not allowed to do that")
 	ErrNotFound           = newErr("not_found", "Resource not found")
+	ErrBadRequest         = newErr("bad_request", "The request was malformed")
 	ErrValidation         = newErr("validation_error", "The request failed validation")
 	ErrNotAdmitted        = newErr("not_admitted", "You need an admitted queue token for this event")
 	ErrInventoryExhausted = newErr("inventory_exhausted", "Not enough inventory available")
