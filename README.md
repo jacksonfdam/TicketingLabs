@@ -29,7 +29,11 @@ Built in phases. Right now:
 - [x] **Phase 0 — Foundation.** Contract, domain model, database schema, shared
       infrastructure (Postgres, Redis, RabbitMQ, Traefik, fake payment gateway),
       executable contract-test scaffold.
-- [ ] **Phase 1 — Reference backend** (Go), passing 100% of the contract tests.
+- [x] **Phase 1 — Reference backend** (Go). Full hexagonal implementation of the
+      contract: idempotent reservations with a distributed lock and atomic stock
+      decrement, TTL holds with a sweeper, async payment via RabbitMQ, signed
+      webhooks, JWT with refresh rotation. Passes the full contract suite (16 tests)
+      and a 500-buyers-vs-100-tickets overselling proof under `-race`.
 - [ ] **Phase 2 — Frontend** (React + Vite + TS), generated client, cache and
       security practices.
 - [ ] **Phase 3 — The other six backends**, each passing the same contract tests.
@@ -51,12 +55,22 @@ make clean       # stop it and wipe local data
 ```
 
 After `make up` you get Postgres (migrated and seeded), Redis, RabbitMQ, the fake
-payment gateway, and the Traefik gateway. There is no backend behind the gateway yet
-(that is Phase 1), so `/api` has nothing healthy to route to. Everything else is live:
+payment gateway, the Traefik gateway, and the Go reference backend behind it. The API
+is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 
+- API (via gateway): https://localhost/api/events
 - RabbitMQ management UI: http://localhost:15672
 - Traefik dashboard: http://localhost:8081
 - Fake payment gateway health: http://localhost:9090/health
+
+Demo credentials (seeded): `buyer@ticketing.local` / `password123`.
+
+```bash
+# log in, then list events
+curl -sk -XPOST https://localhost/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"buyer@ticketing.local","password":"password123"}'
+```
 
 ## Repository layout
 
