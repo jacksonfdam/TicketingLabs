@@ -1,0 +1,58 @@
+# Traefik dynamic configuration.
+#
+# This is where the active backend is chosen. Everything under /api is routed to the
+# service named by ${ACTIVE_BACKEND}. To switch backends you change one variable and
+# reload; the frontend never notices. That is the entire premise of this lab, encoded
+# in about a dozen lines of routing.
+
+http:
+  routers:
+    api:
+      rule: "PathPrefix(`/api`)"
+      entryPoints: [websecure]
+      service: active-backend
+      middlewares:
+        - strip-api
+        - request-id
+        - edge-rate-limit
+        - security-headers
+      tls: {}
+
+  services:
+    active-backend:
+      loadBalancer:
+        # The host "backend" resolves to whichever backend container is running under
+        # that name in the active compose profile. Scale it with `--scale backend=N`
+        # and Traefik load-balances across the replicas.
+        servers:
+          - url: "http://backend:8080"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+  middlewares:
+    strip-api:
+      stripPrefix:
+        prefixes: ["/api"]
+    request-id:
+      # Traefik generates and injects X-Request-Id if absent, then it flows end to end.
+      headers:
+        customRequestHeaders:
+          X-Request-Id: ""
+    edge-rate-limit:
+      rateLimit:
+        average: 50
+        burst: 100
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        frameDeny: true
+        contentSecurityPolicy: "default-src 'self'"
+
+tls:
+  # Self-signed for local dev. Real deployments front this with ACME / a real CA.
+  certificates: []

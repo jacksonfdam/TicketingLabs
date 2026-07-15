@@ -1,0 +1,93 @@
+# Base compose for the ticketing lab.
+#
+# Phase 0 brings up the shared infrastructure every backend depends on: Postgres,
+# Redis, the RabbitMQ broker, the fake payment gateway, and the Traefik API gateway.
+# The backend service itself lands in Phase 1; until then /api has nothing healthy to
+# route to, which is expected.
+#
+# Profiles let one file serve several situations:
+#   docker compose up -d                       # core infra
+#   docker compose --profile demo up -d        # + anything demo-only
+#   docker compose --profile load up -d        # + load-testing tooling
+#
+# Everything reads from .env (copy .env.example first).
+
+name: ticketing-labs
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ticketing}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_local_dev_only}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Applied in order on first init: schema, then role, then seed.
+      - ./contract/db/migrations/0001_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./contract/db/migrations/0002_app_role.sql:/docker-entrypoint-initdb.d/02_role.sql:ro
+      - ./contract/db/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ticketing}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  broker:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  payment-gateway-fake:
+    build: ./services/payment-gateway-fake
+    environment:
+      PORT: "9090"
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-dev_webhook_secret}
+      WEBHOOK_TARGET_URL: https://gateway/api/webhooks/payment
+    ports:
+      - "9090:9090"
+
+  gateway:
+    image: traefik:v3.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8080" # Traefik dashboard
+    volumes:
+      - ./infra/gateway/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./infra/gateway/dynamic.yml:/etc/traefik/dynamic.yml:ro
+
+volumes:
+  pgdata:
+  redisdata:
