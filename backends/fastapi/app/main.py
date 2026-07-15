@@ -264,7 +264,12 @@ def create_app() -> FastAPI:
 
 def _valid_signature(secret: str, signature: str, body: bytes) -> bool:
     want = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(signature, want)
+    try:
+        return hmac.compare_digest(signature, want)
+    except TypeError:
+        # compare_digest rejects non-ASCII strings. A signature with junk bytes is
+        # simply invalid; say so rather than crash into a 500.
+        return False
 
 
 def _weak_etag(detail) -> str:
