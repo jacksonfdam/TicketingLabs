@@ -67,9 +67,39 @@ services:
     environment:
       PORT: "9090"
       PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-dev_webhook_secret}
-      WEBHOOK_TARGET_URL: https://gateway/api/webhooks/payment
+      # Posts straight to the active backend in-network. The HMAC signature is what
+      # authenticates the callback, not the network path.
+      WEBHOOK_TARGET_URL: http://backend:8080/webhooks/payment
     ports:
       - "9090:9090"
+
+  # The reference backend. It answers to the network alias "backend", which is the
+  # host the gateway routes to. When other backends arrive they take the same alias
+  # one at a time, so switching the active backend never touches the frontend.
+  backend-go:
+    build: ./backends/go
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment:
+      HTTP_ADDR: ":8080"
+      DATABASE_URL: postgres://${APP_DB_USER:-ticketing_app}:${APP_DB_PASSWORD:-app_local_dev_only}@postgres:5432/${POSTGRES_DB:-ticketing}?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}@broker:5672/
+      JWT_SECRET: ${JWT_SECRET:-change_me_local_dev_only}
+      ACCESS_TOKEN_TTL_SECONDS: ${ACCESS_TOKEN_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS:-1209600}
+      PAYMENT_GATEWAY_URL: http://payment-gateway-fake:9090
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-dev_webhook_secret}
+      RESERVATION_TTL_SECONDS: ${RESERVATION_TTL_SECONDS:-120}
+      QUEUE_ADMIT_BATCH: ${QUEUE_ADMIT_BATCH:-50}
+    networks:
+      default:
+        aliases: [backend]
 
   gateway:
     image: traefik:v3.3
