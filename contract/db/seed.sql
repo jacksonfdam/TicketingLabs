@@ -4,13 +4,15 @@
 -- The small one exists so the load test can sell it out and prove there is no
 -- overselling. Deterministic UUIDs make it easy to script against.
 --
--- Password hash below is argon2id of "password123" (demo only, obviously).
+-- Password hash below is bcrypt of "password123" (demo only, obviously). bcrypt is
+-- used rather than argon2 so the identical hash authenticates against every backend
+-- in the lab; the hash format is portable across languages.
 
 INSERT INTO users (id, email, password_hash, role) VALUES
   ('00000000-0000-0000-0000-000000000001', 'admin@ticketing.local',
-   '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0$0000000000000000000000000000000000000000000', 'admin'),
+   '$2a$10$sk1Pugb24Q6a8bp7CBGCIuB5XCIxPPCJg1gPvj.FL/d.wFX3/a.gm', 'admin'),
   ('00000000-0000-0000-0000-000000000002', 'buyer@ticketing.local',
-   '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0$0000000000000000000000000000000000000000000', 'customer')
+   '$2a$10$sk1Pugb24Q6a8bp7CBGCIuB5XCIxPPCJg1gPvj.FL/d.wFX3/a.gm', 'customer')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO events (id, name, venue, starts_at, sales_open_at, status) VALUES
