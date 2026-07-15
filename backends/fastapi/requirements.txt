@@ -1,0 +1,10 @@
+# Pinned. The lab is a teaching artifact, not a place to discover which minor version
+# broke async today.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+asyncpg==0.30.0
+redis==5.2.1
+aio-pika==9.5.4
+httpx==0.28.1
+pyjwt==2.10.1
+bcrypt==4.2.1
