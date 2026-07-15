@@ -13,7 +13,9 @@ vendor/
 __pycache__/
 *.pyc
 .venv/
+.venv-check/
 venv/
+.pytest_cache/
 
 # Build output
 dist/

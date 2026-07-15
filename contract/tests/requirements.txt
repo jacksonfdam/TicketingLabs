@@ -1,0 +1,4 @@
+# Contract test toolchain. Pinned, because "latest" is how test suites rot.
+schemathesis==3.39.5
+pytest==8.3.4
+requests==2.32.3
