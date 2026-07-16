@@ -34,8 +34,11 @@ Built in phases. Right now:
       decrement, TTL holds with a sweeper, async payment via RabbitMQ, signed
       webhooks, JWT with refresh rotation. Passes the full contract suite (16 tests)
       and a 500-buyers-vs-100-tickets overselling proof under `-race`.
-- [ ] **Phase 2 — Frontend** (React + Vite + TS), generated client, cache and
-      security practices.
+- [x] **Phase 2 — Frontend** (React + Vite + TS). SPA with a typed client generated
+      from the contract, TanStack Query caching, route-level code splitting, in-memory
+      tokens with refresh rotation, and the full flow (events → waiting room → reserve
+      with countdown → checkout → order polling). Served behind the gateway; verified
+      end-to-end in a browser against the live stack.
 - [x] **Phase 3 — All seven backends.** Go, FastAPI, NestJS, Express, Laravel, Symfony,
       and Phalcon each pass the same 16 contract tests, with zero changes to the suite
       or the frontend. The polyglot claim is a passing test, not a promise.
@@ -60,7 +63,8 @@ After `make up` you get Postgres (migrated and seeded), Redis, RabbitMQ, the fak
 payment gateway, the Traefik gateway, and the Go reference backend behind it. The API
 is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 
-- API (via gateway): https://localhost/api/events
+- Web app (the SPA): http://localhost/
+- API (via gateway): https://localhost/api/events (also http://localhost/api for local dev)
 - RabbitMQ management UI: http://localhost:15672
 - Traefik dashboard: http://localhost:8081
 - Fake payment gateway health: http://localhost:9090/health
