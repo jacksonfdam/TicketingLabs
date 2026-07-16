@@ -99,6 +99,10 @@ curl -sk -XPOST https://localhost/api/auth/login \
   -d '{"email":"buyer@ticketing.local","password":"password123"}'
 ```
 
+For an item-by-item audit of the spec's Definition of Done and the security /
+performance / availability / concurrency checklists against the code — proven, partial,
+or scoped-future — see [docs/status.md](docs/status.md).
+
 ## Repository layout
 
 ```
