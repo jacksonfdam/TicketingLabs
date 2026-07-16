@@ -1,0 +1,40 @@
+{
+  "name": "ticketing-client-rn",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "expo": "~57.0.6",
+    "expo-status-bar": "~57.0.1",
+    "ky": "^1.7.4",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.43",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
+    "@types/react": "~19.2.2",
+    "jest": "^30.0.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "@swc/jest"
+    }
+  },
+  "private": true
+}
