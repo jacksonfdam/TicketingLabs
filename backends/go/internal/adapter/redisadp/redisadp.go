@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
 )
 
 type Client struct {
@@ -35,6 +36,8 @@ end`)
 // until `wait` elapses. The lock auto-expires after lockTTL so a crashed holder cannot
 // wedge a sector forever.
 func (c *Client) Acquire(ctx context.Context, key string, wait time.Duration) (func(), bool, error) {
+	ctx, span := otel.Tracer("redis").Start(ctx, "redis.lock.acquire")
+	defer span.End()
 	token := randToken()
 	deadline := time.Now().Add(wait)
 	fullKey := "lock:" + key

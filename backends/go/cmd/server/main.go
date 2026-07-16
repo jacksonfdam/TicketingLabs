@@ -10,12 +10,14 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/ticketing-labs/backend-go/internal/adapter/broker"
 	"github.com/ticketing-labs/backend-go/internal/adapter/paymentgw"
@@ -31,6 +33,13 @@ func main() {
 	cfg := config.Load()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	// Distributed tracing (opt-in via OTEL_EXPORTER_OTLP_ENDPOINT). No endpoint, no-op.
+	shutdownTracing, err := platform.InitTracing(ctx, "backend-go", os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+	if err != nil {
+		log.Printf("tracing: %v", err)
+	}
+	defer func() { _ = shutdownTracing(context.Background()) }()
 
 	// --- infrastructure ---
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
@@ -100,9 +109,12 @@ func main() {
 		return checks
 	}
 
+	routes := httptransport.NewServer(authSvc, eventSvc, queueSvc, reservationSvc, orderSvc, paymentSvc, tokens, cfg.PaymentWebhookSecret, readiness).Routes()
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           httptransport.NewServer(authSvc, eventSvc, queueSvc, reservationSvc, orderSvc, paymentSvc, tokens, cfg.PaymentWebhookSecret, readiness).Routes(),
+		// otelhttp creates a server span per request; child spans (lock, decrement) nest
+		// under it via the request context.
+		Handler:           otelhttp.NewHandler(routes, "http.server"),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

@@ -12,6 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.opentelemetry.io/otel"
+
 	"github.com/ticketing-labs/backend-go/internal/domain"
 )
 
@@ -144,6 +146,8 @@ func (r SectorRepo) FindByID(ctx context.Context, id string) (*domain.Sector, er
 // DecrementInventory is the anti-overselling primitive. The WHERE clause refuses the
 // update when too little remains, so RowsAffected tells us success without a read.
 func (r SectorRepo) DecrementInventory(ctx context.Context, sectorID string, qty int) (bool, error) {
+	ctx, span := otel.Tracer("postgres").Start(ctx, "db.decrement_inventory")
+	defer span.End()
 	tag, err := r.Pool.Exec(ctx,
 		`UPDATE sectors SET available_inventory = available_inventory - $2
 		  WHERE id = $1 AND available_inventory >= $2`, sectorID, qty)
