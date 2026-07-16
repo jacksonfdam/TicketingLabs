@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up down logs ps restart env contract-lint contract-test db-shell load certs clean
+.PHONY: help up down logs ps restart env contract-lint contract-test contract-sync db-shell load certs clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -32,6 +32,10 @@ contract-lint: ## Lint the OpenAPI contract
 
 contract-test: ## Run contract tests against $$TARGET_URL (skips if no backend)
 	cd contract/tests && pip install -q -r requirements.txt && pytest -v
+
+contract-sync: ## Refresh the client-lab contract mirror (shared/contract) from the source
+	cp contract/openapi.yaml shared/contract/openapi.yaml
+	@diff -q contract/openapi.yaml shared/contract/openapi.yaml >/dev/null && echo "shared/contract/openapi.yaml in sync"
 
 db-shell: ## Open a psql shell on the running Postgres
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ticketing}
