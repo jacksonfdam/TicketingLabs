@@ -1,18 +1,32 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 // The Compose Multiplatform UI module. The UI, state holders and previews live in
-// commonMain and are shared verbatim; each platform contributes only a thin entry point.
-// This module targets Desktop, which is the target we run headlessly to verify the UI.
-// The Android and iOS entry points reuse the same commonMain composables; they are added
-// as targets once their thin entry wrappers (Activity, UIViewController) are in place.
+// commonMain and are shared verbatim across Android, iOS and Desktop; each platform only
+// contributes a thin entry point (an Activity, a UIViewController, a main() + Window).
+// Desktop is the target we run headlessly to verify the UI; the same composables back the
+// Android (library) and iOS (framework) targets.
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
     jvm("desktop")
+
+    android {
+        namespace = "com.ticketinglabs.client.app"
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+    }
+
+    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -29,6 +43,9 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
         }
         val desktopMain by getting
         desktopMain.dependencies {

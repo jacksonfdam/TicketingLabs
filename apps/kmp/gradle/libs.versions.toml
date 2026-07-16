@@ -2,7 +2,7 @@
 # bump before a real first sync; see apps/kmp/README.md and the version notes in memory.
 [versions]
 kotlin = "2.4.10"
-composeMultiplatform = "1.11.1"
+composeMultiplatform = "1.11.0"
 agp = "9.2.1"
 # The following are conventional latest-stable picks to be confirmed at first Gradle sync.
 coroutines = "1.11.0"
