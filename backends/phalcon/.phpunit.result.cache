@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Tests\\ReservationTest::test_stock_never_goes_negative":0.001,"Tests\\ReservationTest::test_idempotent_replay":0,"Tests\\ReservationTest::test_requires_admission":0,"Tests\\ReservationTest::test_release_returns_stock_and_is_idempotent":0,"Tests\\ReservationTest::test_sweeper_expires_held":0}}
