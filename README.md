@@ -36,9 +36,9 @@ Built in phases. Right now:
       and a 500-buyers-vs-100-tickets overselling proof under `-race`.
 - [ ] **Phase 2 — Frontend** (React + Vite + TS), generated client, cache and
       security practices.
-- [~] **Phase 3 — The other backends**, each passing the same contract tests.
-      **FastAPI**, **NestJS**, **Express**, **Laravel**, and **Symfony** are done (same
-      16 tests, zero changes to the suite or frontend). Remaining: Phalcon.
+- [x] **Phase 3 — All seven backends.** Go, FastAPI, NestJS, Express, Laravel, Symfony,
+      and Phalcon each pass the same 16 contract tests, with zero changes to the suite
+      or the frontend. The polyglot claim is a passing test, not a promise.
 - [ ] **Phase 4 — Resilience and observability**, live failure injection, dashboards,
       distributed tracing.
 - [ ] **Phase 5 — Scale**, load tests proving no overselling, horizontal scaling,
@@ -67,9 +67,9 @@ is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 
 Demo credentials (seeded): `buyer@ticketing.local` / `password123`.
 
-Switch the active backend by editing one line in `.env` (`COMPOSE_PROFILES=go`,
-`fastapi`, `nest`, `express`, `laravel`, or `symfony`) and running `make up` again. The
-frontend, gateway, and contract do not change. See
+Switch the active backend by editing one line in `.env` — `COMPOSE_PROFILES` is one of
+`go`, `fastapi`, `nest`, `express`, `laravel`, `symfony`, `phalcon` — and running
+`make up` again. The frontend, gateway, and contract do not change. See
 [ADR 0006](docs/adr/0006-backend-switching-via-compose-profiles.md).
 
 ```bash
