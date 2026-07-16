@@ -9,10 +9,13 @@ the compliance paperwork. It exists so the backends have something to be resilie
 - `POST /charges` — body `{ "order_id": "<uuid>" }`. Returns `202` with a
   `provider_ref` and settles asynchronously by calling the backend webhook.
 - `POST /admin/failure-mode` — body `{ "mode": "ok" | "fail" | "timeout" }`.
-  Changes behaviour at runtime, no restart. This is the lever for the resilience demos.
-  - `ok` settles as `succeeded`
-  - `fail` settles as `failed`
-  - `timeout` never calls back at all, so the backend's timeout has to do the work
+  Changes behaviour at runtime, no restart. The switch acts on the charge request itself,
+  so the backend's timeout, retry, and circuit breaker have something to react to:
+  - `ok` — accept the charge (202) and settle it asynchronously via a signed webhook
+  - `fail` — reject the charge outright with `502` (the backend retries, then the
+    circuit breaker trips after repeated failures)
+  - `timeout` — hang past any sane client timeout, forcing the backend's request timeout
+    to fire
 - `GET /health` — liveness, also reports the current mode.
 
 ## Signed webhooks

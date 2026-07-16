@@ -90,8 +90,19 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/charges":
             data = self._read()
             order_id = data.get("order_id") or str(uuid.uuid4())
+            with _lock:
+                mode = _state["mode"]
+            # The failure switch acts on the charge request itself, so the backend's
+            # timeout, retry, and circuit breaker have something to react to:
+            #   fail    -> reject the charge outright (502)
+            #   timeout -> hang past any sane client timeout, then answer nobody is left for
+            #   ok      -> accept and settle asynchronously via a signed webhook
+            if mode == "fail":
+                return self._json(502, {"error": "charge_rejected"})
+            if mode == "timeout":
+                time.sleep(10)
+                return self._json(202, {"provider_ref": "pay_late", "status": "pending"})
             provider_ref = "pay_" + uuid.uuid4().hex[:16]
-            # Settle asynchronously, like a real provider that makes you wait.
             threading.Thread(
                 target=_settle_later, args=(order_id, provider_ref), daemon=True
             ).start()
