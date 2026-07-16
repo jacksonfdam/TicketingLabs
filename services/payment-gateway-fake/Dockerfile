@@ -1,5 +1,5 @@
 # Stdlib only, so there is nothing to pip install and the image stays small.
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 COPY app.py .
