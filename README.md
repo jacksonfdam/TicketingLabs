@@ -47,10 +47,11 @@ Built in phases. Right now:
       (graceful degradation: orders stay `pending`, no 5xx). Prometheus + Grafana with a
       RED dashboard collected at the gateway (works for all backends). Remaining:
       distributed tracing (OpenTelemetry) and log aggregation (Loki).
-- [~] **Phase 5 — Scale.** Load test done: a k6 stampede (`make load`) proves no
-      overselling — 100 of 100 seats sold under 400 concurrent attempts, 0 over-sold,
-      0 5xx, verified on Go and Phalcon. Remaining: horizontal-scale demo and
-      Kubernetes manifests.
+- [x] **Phase 5 — Scale.** A k6 stampede (`make load`) proves no overselling — 100 of
+      100 seats sold under 400 concurrent attempts, 0 over-sold, 0 5xx — on Go and
+      Phalcon, and again with the backend scaled to 3 replicas (all three served, one
+      shared Postgres + Redis). Kubernetes manifests (Deployment, Service, HPA, probes,
+      ConfigMap/Secret, Ingress) in `infra/k8s`, schema-validated.
 - [ ] **Phase 6 — Recipes**, one per concept per backend.
 
 ## Quick start

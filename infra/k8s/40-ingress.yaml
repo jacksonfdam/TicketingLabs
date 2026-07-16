@@ -1,0 +1,31 @@
+# The Ingress is the Kubernetes equivalent of the Traefik gateway: /api goes to the
+# backend (with the /api prefix stripped, mirroring the gateway's strip-api middleware),
+# everything else to the SPA. Same origin, so no CORS and the frontend never learns which
+# backend answers. Annotations shown for the ingress-nginx controller.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticketing
+  namespace: ticketing
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: ticketing.local
+      http:
+        paths:
+          # /api/(.*) -> backend /$2  (strip the /api prefix)
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: backend
+                port: { number: 8080 }
+          # everything else -> the SPA
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend
+                port: { number: 8080 }

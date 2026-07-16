@@ -1,0 +1,71 @@
+# The backend tier: a stateless Deployment (any of the seven images drops in here — this
+# uses Go), a Service, and an HPA. Stateless + shared Postgres/Redis is exactly what makes
+# horizontal scaling safe: the distributed lock and atomic decrement coordinate across
+# every replica, proven by the load test surviving `--scale backend=3`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ticketing
+  labels: { app: backend }
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+        - name: backend
+          # Build and push one of backends/*; this points at the Go image.
+          image: ticketing-labs/backend-go:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef: { name: backend-config }
+            - secretRef: { name: backend-secrets }
+          # Liveness = process is up; readiness = dependencies (DB, Redis) reachable.
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /ready, port: 8080 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 64Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: ticketing
+spec:
+  selector: { app: backend }
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend
+  namespace: ticketing
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
