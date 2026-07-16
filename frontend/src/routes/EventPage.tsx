@@ -17,6 +17,7 @@ export default function EventPage() {
   const { data: detail, isLoading } = useEvent(id);
 
   const [joined, setJoined] = useState(false);
+  const [joinPosition, setJoinPosition] = useState<number | null>(null);
   const [reservation, setReservation] = useState<Reservation | null>(null);
 
   const join = useJoinQueue();
@@ -24,7 +25,10 @@ export default function EventPage() {
   const reserve = useCreateReservation();
   const order = useCreateOrder();
 
-  const admitted = queue.data?.status === 'admitted';
+  const token = queue.data;
+  const admitted = token?.status === 'admitted';
+  // Position from the live poll, falling back to the join response so it shows at once.
+  const position = token?.position ?? joinPosition;
 
   if (isLoading) return <div className="skeleton-card" style={{ height: 200 }} />;
   if (!detail) return <p className="error">Event not found.</p>;
@@ -40,20 +44,28 @@ export default function EventPage() {
       <h1>{detail.name}</h1>
       <p className="muted">{detail.venue}</p>
 
-      {/* Waiting room */}
-      {!admitted && (
+      {/* Waiting room. The queue position stays visible for the whole flow, from the
+          moment you join through admission — under a real stampede you would watch it
+          count down; in this demo admission is immediate. */}
+      {!joined ? (
         <section className="card">
           <h2>Waiting room</h2>
-          {!joined ? (
-            <button className="primary" disabled={join.isPending} onClick={async () => { await join.mutateAsync(id); setJoined(true); }}>
-              {join.isPending ? 'Joining…' : 'Join the queue'}
-            </button>
-          ) : (
-            <p>
-              You are in line. Position <strong>{queue.data?.position ?? '…'}</strong>.
-              <span className="muted"> Checking for admission…</span>
-            </p>
-          )}
+          <button className="primary" disabled={join.isPending} onClick={async () => {
+            const t = await join.mutateAsync(id);
+            setJoinPosition((t as { position: number }).position);
+            setJoined(true);
+          }}>
+            {join.isPending ? 'Joining…' : 'Join the queue'}
+          </button>
+        </section>
+      ) : (
+        <section className={admitted ? 'card' : 'card held'}>
+          <h2>Waiting room</h2>
+          <p>
+            You are <strong>#{position !== null ? position + 1 : '…'}</strong> in line
+            {admitted ? ' — admitted. Choose your seat below.' : '.'}
+          </p>
+          {!admitted && <p className="muted">Waiting for admission…</p>}
         </section>
       )}
 
