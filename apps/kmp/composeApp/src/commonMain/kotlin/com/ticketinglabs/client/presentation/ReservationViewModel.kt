@@ -8,7 +8,8 @@ import com.ticketinglabs.client.domain.model.Reservation
 import com.ticketinglabs.client.domain.model.SectorId
 import com.ticketinglabs.client.domain.port.IdempotencyKeyFactory
 import com.ticketinglabs.client.domain.usecase.CreateReservationUseCase
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,12 +28,11 @@ import kotlinx.coroutines.launch
  * [reset] clears the intent (new key next time) for a genuinely new reservation — e.g. after
  * the hold expires or the user goes back and starts over.
  */
-class ReservationStore(
+class ReservationViewModel(
     private val createReservation: CreateReservationUseCase,
     private val keys: IdempotencyKeyFactory,
-    private val scope: CoroutineScope,
     private val logger: Logger = NoopLogger,
-) {
+) : ViewModel() {
     private val _state = MutableStateFlow<UiState<Reservation>>(UiState.Idle)
     val state: StateFlow<UiState<Reservation>> = _state.asStateFlow()
 
@@ -47,7 +47,7 @@ class ReservationStore(
         if (inFlight?.isActive == true) return
         val key = intentKey ?: keys.newKey().also { intentKey = it }
         _state.value = UiState.Loading
-        inFlight = scope.launch {
+        inFlight = viewModelScope.launch {
             _state.value = when (val result = createReservation(sectorId, quantity, key)) {
                 is Outcome.Success -> UiState.Success(result.value)
                 is Outcome.Failure -> result.error.toUiState()

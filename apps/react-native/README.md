@@ -1,47 +1,46 @@
-# React Native client — Expo (managed)
+# React Native client — Expo
 
-The ticketing client in React Native on Expo, New Architecture only. State in hooks plus
-a Zustand store, server-state in TanStack Query, types generated from the contract.
+The ticketing client in React Native on Expo. State in zustand plus hooks, server-state
+reads through TanStack Query, HTTP via `ky`, types validated defensively at the boundary.
 
 ## Status
 
-Skeleton only. This README and the folder exist; no TypeScript has been written yet. The
-shared assets it will consume are ready in [`/shared`](../../shared/).
+Complete and verified headlessly. `npm run typecheck` is clean, `npm test` runs 17 unit
+tests green (use cases, defensive mapping, stores), and `npx expo export --platform ios`
+Metro-bundles the whole app (643 modules). Running it interactively on a simulator is a
+`npx expo run:ios` / `run:android` away but not required for the verification bar here.
 
-## Version floor
+## Versions
 
-Pin the latest **stable** at scaffold time. The floor below is the reference from the
-master spec, not a claim about today's newest release. Verify against the stable releases
-and record the resolved versions here once the project is generated. The old architecture
-is retired — do **not** enable it.
+Resolved at scaffold time (Expo SDK 57):
 
-| Concern | Floor |
+| Concern | Pinned |
 |---|---|
-| React Native | 0.84.x, New Architecture (Fabric + TurboModules + JSI), Hermes V1 |
-| Expo SDK | latest stable |
-| State (hooks + Zustand) | latest stable |
-| Server-state (TanStack Query) | latest stable |
-| HTTP (`ky` / `fetch`) | latest stable |
-| Types (`openapi-typescript`) | latest stable |
-| Secure storage (`expo-secure-store`) | latest stable |
-| Lists (FlashList), animation (Reanimated) | latest stable |
-| Previews (Storybook for React Native) | latest stable |
+| React Native | 0.86.0, New Architecture (Fabric + TurboModules), Hermes |
+| Expo SDK | 57 |
+| React | 19.2.3 |
+| State | zustand 5 (vanilla stores) |
+| Server-state | @tanstack/react-query 5 |
+| HTTP | ky 1.7 |
+| Tests | jest 30 + @swc/jest (fast, TS-version-agnostic) |
 
-Resolved versions: _to be recorded when the project is scaffolded._
+Note: the tests run under `@swc/jest` rather than `jest-expo`. The logic layers are pure
+TypeScript (no React Native imports), so they need no RN test environment; `@swc/jest`
+transpiles them without the version friction of the expo preset against React 19.
 
-## Intended structure
+## Structure
 
 ```
 src/
-  ui/            atoms → molecules → organisms → templates → screens
-  state/         Zustand stores + hooks
-  usecase/       pure business logic, no React, unit-testable
-  repository/    ports (interfaces) + DTO → domain mapping
-  data/          ky/fetch adapter → gateway base URL, middleware
-  di/            wiring, base URL injection (Expo config / env)
-__tests__/       use-case + repository tests keyed to /shared/scenarios
-.storybook/      preview catalog across component states
+  core/          Outcome result type, AppError taxonomy, UiState, logger
+  domain/        validated models, repository ports, use cases            [tested]
+  data/          ky adapter, defensive mappers, error mapper, repos        [mappers tested]
+  presentation/  zustand stores (waiting/reservation/order) + TanStack Query reads [tested]
+  ui/            theme (tokens), atoms, components, screens, gallery
+  demo/          in-memory repositories for the runnable demo
+App.tsx          composition root: QueryClientProvider + flow navigation + gallery tab
 ```
 
-Previews use Storybook for React Native so every atom/molecule/organism renders in
-isolation across its states. See [`docs/client-architecture.md`](../../docs/client-architecture.md).
+Commands: `npm test`, `npm run typecheck`, `npm start` (Expo dev server),
+`npx expo run:ios` / `run:android` (native run). See
+[docs/client-architecture.md](../../docs/client-architecture.md).

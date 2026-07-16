@@ -6,7 +6,8 @@ import com.ticketinglabs.client.core.Outcome
 import com.ticketinglabs.client.core.UiState
 import com.ticketinglabs.client.domain.model.Event
 import com.ticketinglabs.client.domain.port.EventRepository
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,18 +22,16 @@ import kotlinx.coroutines.launch
  * to be null. An empty page is [UiState.Empty], a failure is a typed error state, and a
  * refresh after failure is [UiState.Retrying].
  *
- * Framework-free: it takes a [CoroutineScope] rather than owning one, so it is trivially
- * driven from a test with virtual time and adapts to a ViewModel scope in the UI module.
+ * A multiplatform [ViewModel]: loads run in [viewModelScope] and are cancelled automatically
+ * when the ViewModel clears, so nothing leaks when the screen goes away.
  *
  * @property events the repository port.
- * @property scope the scope loads run in.
  * @property logger structured logging sink.
  */
-class EventsStore(
+class EventsViewModel(
     private val events: EventRepository,
-    private val scope: CoroutineScope,
     private val logger: Logger = NoopLogger,
-) {
+) : ViewModel() {
     private val _state = MutableStateFlow<UiState<List<Event>>>(UiState.Idle)
     val state: StateFlow<UiState<List<Event>>> = _state.asStateFlow()
 
@@ -47,7 +46,7 @@ class EventsStore(
     fun load(isRetry: Boolean = false) {
         if (inFlight?.isActive == true) return
         _state.value = if (isRetry) UiState.Retrying else UiState.Loading
-        inFlight = scope.launch {
+        inFlight = viewModelScope.launch {
             _state.value = when (val result = events.listEvents(cursor = null, limit = null)) {
                 is Outcome.Success ->
                     if (result.value.events.isEmpty()) UiState.Empty

@@ -13,6 +13,8 @@ import com.ticketinglabs.client.domain.port.OrderRepository
 import com.ticketinglabs.client.domain.usecase.CreateOrderUseCase
 import com.ticketinglabs.client.domain.usecase.OrderReconciler
 import com.ticketinglabs.client.domain.usecase.Reconciliation
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,15 +45,14 @@ import kotlinx.coroutines.launch
  * @property maxUnknownRetries how many times an unknown create is retried before the UI is
  *   left in the confirming state for the user to wait out.
  */
-class OrderStore(
+class OrderViewModel(
     private val createOrder: CreateOrderUseCase,
     private val orders: OrderRepository,
     private val keys: IdempotencyKeyFactory,
-    private val scope: CoroutineScope,
     private val pollIntervalMs: Long = 1_000,
     private val maxUnknownRetries: Int = 5,
     private val logger: Logger = NoopLogger,
-) {
+) : ViewModel() {
     private val _state = MutableStateFlow<UiState<Order>>(UiState.Idle)
     val state: StateFlow<UiState<Order>> = _state.asStateFlow()
 
@@ -63,7 +64,7 @@ class OrderStore(
         if (job?.isActive == true) return
         val key = intentKey ?: keys.newKey().also { intentKey = it }
         _state.value = UiState.Loading
-        job = scope.launch {
+        job = viewModelScope.launch {
             val order = createReconciling(reservationId, key) ?: return@launch
             _state.value = UiState.Success(order)
             pollUntilSettled(order.id)

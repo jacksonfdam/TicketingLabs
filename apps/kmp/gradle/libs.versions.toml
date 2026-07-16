@@ -8,6 +8,10 @@ agp = "9.2.1"
 coroutines = "1.11.0"
 serialization = "1.11.0"
 ktor = "3.5.1"
+# Multiplatform lifecycle/ViewModel (org.jetbrains.androidx.lifecycle). 2.9.x is the latest
+# stable line; CMP 1.11 ships against 2.11-rc, which is beta and excluded by the lab rule.
+androidxLifecycle = "2.9.1"
+androidxActivityCompose = "1.10.1"
 androidCompileSdk = "36"
 androidMinSdk = "26"
 
@@ -17,6 +21,9 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivityCompose" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

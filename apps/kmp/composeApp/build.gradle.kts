@@ -1,19 +1,40 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
-// The Compose Multiplatform UI. Built as a Desktop (JVM) application so the UI compiles and
-// runs without an emulator, which is the verification target for this lab. The composables
-// are platform-agnostic Material 3; Android and iOS entry points reuse them unchanged.
+// The Compose Multiplatform UI module. The UI, state holders and previews live in
+// commonMain and are shared verbatim; each platform contributes only a thin entry point.
+// This module targets Desktop, which is the target we run headlessly to verify the UI.
+// The Android and iOS entry points reuse the same commonMain composables; they are added
+// as targets once their thin entry wrappers (Activity, UIViewController) are in place.
 plugins {
-    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
-dependencies {
-    implementation(project(":shared"))
-    implementation(compose.desktop.currentOs) // pulls runtime, foundation and ui
-    implementation(compose.material3)
-    implementation(libs.kotlinx.coroutines.core)
+kotlin {
+    jvm("desktop")
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":shared"))
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(compose.components.uiToolingPreview)
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+        }
+        val desktopMain by getting
+        desktopMain.dependencies {
+            implementation(compose.desktop.currentOs)
+        }
+    }
 }
 
 compose.desktop {

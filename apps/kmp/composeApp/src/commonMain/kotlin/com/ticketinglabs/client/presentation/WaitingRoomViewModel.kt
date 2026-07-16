@@ -8,7 +8,8 @@ import com.ticketinglabs.client.core.UiState
 import com.ticketinglabs.client.domain.model.EventId
 import com.ticketinglabs.client.domain.model.QueueToken
 import com.ticketinglabs.client.domain.port.QueueRepository
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +29,11 @@ import kotlinx.coroutines.launch
  *
  * @property pollIntervalMs base delay between position polls.
  */
-class WaitingRoomStore(
+class WaitingRoomViewModel(
     private val queue: QueueRepository,
-    private val scope: CoroutineScope,
     private val pollIntervalMs: Long = 1_500,
     private val logger: Logger = NoopLogger,
-) {
+) : ViewModel() {
     private val _state = MutableStateFlow<UiState<QueueToken>>(UiState.Idle)
     val state: StateFlow<UiState<QueueToken>> = _state.asStateFlow()
 
@@ -43,7 +43,7 @@ class WaitingRoomStore(
     fun start(eventId: EventId) {
         if (job?.isActive == true) return
         _state.value = UiState.Loading
-        job = scope.launch {
+        job = viewModelScope.launch {
             when (val joined = queue.join(eventId)) {
                 is Outcome.Success -> _state.value = UiState.Success(joined.value)
                 is Outcome.Failure -> {

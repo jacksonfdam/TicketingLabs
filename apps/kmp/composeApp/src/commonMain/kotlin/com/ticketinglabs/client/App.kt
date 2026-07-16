@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ticketinglabs.client.core.Outcome
 import com.ticketinglabs.client.core.UiState
 import com.ticketinglabs.client.demo.DemoEventRepository
 import com.ticketinglabs.client.demo.DemoIdempotencyKeyFactory
@@ -18,10 +20,10 @@ import com.ticketinglabs.client.domain.model.EventDetail
 import com.ticketinglabs.client.domain.model.EventId
 import com.ticketinglabs.client.domain.usecase.CreateOrderUseCase
 import com.ticketinglabs.client.domain.usecase.CreateReservationUseCase
-import com.ticketinglabs.client.presentation.EventsStore
-import com.ticketinglabs.client.presentation.OrderStore
-import com.ticketinglabs.client.presentation.ReservationStore
-import com.ticketinglabs.client.presentation.WaitingRoomStore
+import com.ticketinglabs.client.presentation.EventsViewModel
+import com.ticketinglabs.client.presentation.OrderViewModel
+import com.ticketinglabs.client.presentation.ReservationViewModel
+import com.ticketinglabs.client.presentation.WaitingRoomViewModel
 import com.ticketinglabs.client.ui.screens.EventDetailScreen
 import com.ticketinglabs.client.ui.screens.EventsScreen
 import com.ticketinglabs.client.ui.screens.OrderStatusScreen
@@ -35,10 +37,10 @@ import kotlinx.coroutines.launch
 private enum class Screen { Events, Detail, Waiting, Sectors, Reservation, Order }
 
 /**
- * The demo app shell: seven screens, one linear flow, wired to the real state holders over
- * in-memory demo repositories. This is the composition root — it constructs the dependency
- * graph (repos → use cases → stores) and drives navigation. On Android/iOS the same screens
- * and stores are used; only this shell and the repositories' HTTP engine differ.
+ * The demo app shell: seven screens, one linear flow, wired to the real ViewModels over
+ * in-memory demo repositories. The composition root — it builds the dependency graph
+ * (repos → use cases → ViewModels) and drives navigation. This composable is common: the
+ * Android, iOS and Desktop entry points all call [App]; only the entry point differs.
  */
 @Composable
 fun App() {
@@ -51,21 +53,21 @@ fun App() {
         val orderRepo = remember { DemoOrderRepository() }
         val keys = remember { DemoIdempotencyKeyFactory() }
 
-        val eventsStore = remember { EventsStore(eventRepo, scope) }
-        val waitingStore = remember { WaitingRoomStore(queueRepo, scope, pollIntervalMs = 800) }
-        val reservationStore = remember { ReservationStore(CreateReservationUseCase(reservationRepo), keys, scope) }
-        val orderStore = remember { OrderStore(CreateOrderUseCase(orderRepo), orderRepo, keys, scope, pollIntervalMs = 600) }
+        val eventsVm = viewModel { EventsViewModel(eventRepo) }
+        val waitingVm = viewModel { WaitingRoomViewModel(queueRepo, pollIntervalMs = 800) }
+        val reservationVm = viewModel { ReservationViewModel(CreateReservationUseCase(reservationRepo), keys) }
+        val orderVm = viewModel { OrderViewModel(CreateOrderUseCase(orderRepo), orderRepo, keys, pollIntervalMs = 600) }
 
         var screen by remember { mutableStateOf(Screen.Events) }
         var detail by remember { mutableStateOf<EventDetail?>(null) }
         var remainingMs by remember { mutableStateOf(120_000L) }
 
-        LaunchedEffect(Unit) { eventsStore.load() }
+        LaunchedEffect(Unit) { eventsVm.load() }
 
-        val eventsState by eventsStore.state.collectAsState()
-        val waitingState by waitingStore.state.collectAsState()
-        val reservationState by reservationStore.state.collectAsState()
-        val orderState by orderStore.state.collectAsState()
+        val eventsState by eventsVm.state.collectAsState()
+        val waitingState by waitingVm.state.collectAsState()
+        val reservationState by reservationVm.state.collectAsState()
+        val orderState by orderVm.state.collectAsState()
 
         // Drive the hold countdown once a reservation is held.
         LaunchedEffect(reservationState) {
@@ -79,9 +81,9 @@ fun App() {
         }
 
         suspend fun loadDetail(id: EventId) {
-            when (val r = eventRepo.getEvent(id)) {
-                is com.ticketinglabs.client.core.Outcome.Success -> detail = r.value
-                is com.ticketinglabs.client.core.Outcome.Failure -> detail = null
+            detail = when (val r = eventRepo.getEvent(id)) {
+                is Outcome.Success -> r.value
+                is Outcome.Failure -> null
             }
         }
 
@@ -92,13 +94,13 @@ fun App() {
                     scope.launch { loadDetail(event.id) }
                     screen = Screen.Detail
                 },
-                onRetry = { eventsStore.load(isRetry = true) },
+                onRetry = { eventsVm.load(isRetry = true) },
             )
 
             Screen.Detail -> EventDetailScreen(
                 state = detail?.let { UiState.Success(it) } ?: UiState.Loading,
                 onJoinQueue = {
-                    detail?.let { waitingStore.start(it.event.id) }
+                    detail?.let { waitingVm.start(it.event.id) }
                     screen = Screen.Waiting
                 },
                 onRetry = { detail?.let { d -> scope.launch { loadDetail(d.event.id) } } },
@@ -107,12 +109,12 @@ fun App() {
             Screen.Waiting -> WaitingRoomScreen(
                 state = waitingState,
                 onContinue = { screen = Screen.Sectors },
-                onRetry = { detail?.let { waitingStore.start(it.event.id) } },
+                onRetry = { detail?.let { waitingVm.start(it.event.id) } },
             )
 
             Screen.Sectors -> detail?.let { d ->
                 SectorSelectionScreen(d) { sector, qty ->
-                    reservationStore.reserve(sector.id, qty)
+                    reservationVm.reserve(sector.id, qty)
                     screen = Screen.Reservation
                 }
             }
@@ -123,11 +125,11 @@ fun App() {
                 onCheckout = {
                     val held = (reservationState as? UiState.Success)?.data
                     if (held != null) {
-                        orderStore.checkout(held.id)
+                        orderVm.checkout(held.id)
                         screen = Screen.Order
                     }
                 },
-                onRetry = { detail?.sectors?.firstOrNull()?.let { reservationStore.reserve(it.id, 1) } },
+                onRetry = { detail?.sectors?.firstOrNull()?.let { reservationVm.reserve(it.id, 1) } },
             )
 
             Screen.Order -> OrderStatusScreen(
@@ -135,7 +137,7 @@ fun App() {
                 onDone = { screen = Screen.Events },
                 onRetry = {
                     val held = (reservationState as? UiState.Success)?.data
-                    if (held != null) orderStore.checkout(held.id)
+                    if (held != null) orderVm.checkout(held.id)
                 },
             )
         }
