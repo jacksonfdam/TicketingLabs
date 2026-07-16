@@ -54,7 +54,11 @@ Built in phases. Right now:
       Phalcon, and again with the backend scaled to 3 replicas (all three served, one
       shared Postgres + Redis). Kubernetes manifests (Deployment, Service, HPA, probes,
       ConfigMap/Secret, Ingress) in `infra/k8s`, schema-validated.
-- [ ] **Phase 6 — Recipes**, one per concept per backend.
+- [x] **Phase 6 — Recipes.** Twelve concept recipes in [docs/recipes](docs/recipes/)
+      (idempotency, distributed lock, no-overselling, scale, queue, circuit breaker,
+      async payment, JWT rotation, rate limiting, HTTP caching, RED metrics, tracing),
+      each pointing at real code, plus a per-backend README for each of the seven stacks
+      and six ADRs. The educational product the lab was built to be.
 
 ## Quick start
 
