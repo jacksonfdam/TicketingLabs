@@ -53,6 +53,24 @@ Three rules the whole repo is built to keep true:
 - **The recipes** — fourteen concept write-ups in [docs/recipes](docs/recipes/), each
   pointing at real code, plus a README per backend and the ADRs behind the key decisions.
 
+## The client lab
+
+The same ticketing client, built three times — Kotlin Multiplatform, Flutter, React
+Native — so you can compare how each platform solves the same problems. Same contract,
+same seven-screen flow, same states, each app blind to the backend behind a single base
+URL. It is the mobile companion to the seven backends above.
+
+Current state: **scaffolded**. The single-sourced [`shared/`](shared/) assets are in place
+(contract mirror, design tokens, scenario list, error copy), the [`apps/`](apps/) folders
+and their READMEs exist, and the client architecture and state machines are documented.
+No app code is written yet; the reference app is the next step.
+
+- [apps/README.md](apps/README.md) — the three clients and build order.
+- [shared/README.md](shared/README.md) — what is single-sourced and why.
+- [docs/client-architecture.md](docs/client-architecture.md) — the shared layering.
+- [docs/client-state-machines.md](docs/client-state-machines.md) — reservation + order, in Mermaid.
+- [ADR 0007](docs/adr/0007-three-clients-one-contract.md) / [ADR 0008](docs/adr/0008-shared-client-assets-single-source.md) — the decisions behind it.
+
 ## Quick start
 
 Requires Docker and Docker Compose.
@@ -99,8 +117,10 @@ contract/     openapi.yaml (source of truth), db schema + migrations, contract t
 backends/     one directory per framework: go, fastapi, nest, express, laravel, symfony, phalcon
 services/     payment-gateway-fake (external provider simulator with a failure switch)
 frontend/     React + Vite + TypeScript SPA
+shared/       single-sourced client assets: contract mirror, tokens, scenarios, copy
+apps/         the three mobile clients: kmp, flutter, react-native
 infra/        gateway config, k8s manifests, observability, load tests
-docs/         architecture.md, domain-model.md, adr/, recipes/
+docs/         architecture.md, domain-model.md, client-architecture.md, adr/, recipes/
 ```
 
 ## Where to read next
