@@ -55,6 +55,9 @@ const STATUS: Record<string, number> = {
 
 const requestId = (req: Request): string => (req as Request & { requestId: string }).requestId;
 const userId = (req: Request): string => (req as Request & { userId: string }).userId;
+// Express 5 types route params as string | string[]; our routes always have a single
+// :id, so coerce to a plain string at the edge.
+const idParam = (req: Request): string => String(req.params.id);
 
 export function createApp(deps: Deps): express.Express {
   const app = express();
@@ -129,7 +132,7 @@ export function createApp(deps: Deps): express.Express {
   app.get(
     '/events/:id',
     wrap(async (req, res) => {
-      const detail = await deps.events.get(req.params.id);
+      const detail = await deps.events.get(idParam(req));
       const etag = weakEtag(detail);
       if (req.headers['if-none-match'] === etag) {
         res.setHeader('ETag', etag).status(304).end();
@@ -144,14 +147,14 @@ export function createApp(deps: Deps): express.Express {
     '/events/:id/queue',
     requireAuth,
     wrap(async (req, res) => {
-      res.status(201).json(dto.queueTokenDto(await deps.queue.join(userId(req), req.params.id)));
+      res.status(201).json(dto.queueTokenDto(await deps.queue.join(userId(req), idParam(req))));
     }),
   );
   app.get(
     '/events/:id/queue/status',
     requireAuth,
     wrap(async (req, res) => {
-      res.json(dto.queueTokenDto(await deps.queue.status(userId(req), req.params.id)));
+      res.json(dto.queueTokenDto(await deps.queue.status(userId(req), idParam(req))));
     }),
   );
 
@@ -172,7 +175,7 @@ export function createApp(deps: Deps): express.Express {
     '/reservations/:id',
     requireAuth,
     wrap(async (req, res) => {
-      await deps.reservations.release(userId(req), req.params.id);
+      await deps.reservations.release(userId(req), idParam(req));
       res.status(204).end();
     }),
   );
@@ -192,7 +195,7 @@ export function createApp(deps: Deps): express.Express {
     '/orders/:id',
     requireAuth,
     wrap(async (req, res) => {
-      res.json(dto.orderDto(await deps.orders.get(req.params.id)));
+      res.json(dto.orderDto(await deps.orders.get(idParam(req))));
     }),
   );
 
