@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up down logs ps restart env contract-lint contract-test db-shell clean
+.PHONY: help up down logs ps restart env contract-lint contract-test db-shell load clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -35,6 +35,12 @@ contract-test: ## Run contract tests against $$TARGET_URL (skips if no backend)
 
 db-shell: ## Open a psql shell on the running Postgres
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ticketing}
+
+load: ## Reset stock and run the k6 overselling stampede against the active backend
+	$(COMPOSE) exec -T postgres psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ticketing} \
+		-c "UPDATE sectors SET available_inventory = total_inventory; DELETE FROM orders; DELETE FROM reservations; DELETE FROM queue_tokens;"
+	docker run --rm --network ticketing-labs_default -v "$(PWD)/infra/load":/s \
+		-e TARGET=http://backend:8080 grafana/k6 run /s/reserve-stampede.js
 
 clean: ## Stop everything and remove volumes (destroys local data)
 	$(COMPOSE) down -v
