@@ -1,10 +1,11 @@
-# Pinned. The lab is a teaching artifact, not a place to discover which minor version
-# broke async today.
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-asyncpg==0.30.0
-redis==5.2.1
-aio-pika==9.5.4
+# Pinned to current stable releases (verified for Python 3.14 wheels). "latest" is how
+# test suites rot, but stale pins are how CVEs accumulate; these are the current stable
+# versions at time of writing.
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+asyncpg==0.31.0
+redis==8.0.1
+aio-pika==10.0.1
 httpx==0.28.1
-pyjwt==2.10.1
-bcrypt==4.2.1
+pyjwt==2.13.0
+bcrypt==5.0.0
