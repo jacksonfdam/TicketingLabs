@@ -92,6 +92,8 @@ services:
         condition: service_healthy
     environment:
       HTTP_ADDR: ":8080"
+      # Set to tempo:4317 (via the observability profile) to export traces; empty = off.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       DATABASE_URL: postgres://${APP_DB_USER:-ticketing_app}:${APP_DB_PASSWORD:-app_local_dev_only}@postgres:5432/${POSTGRES_DB:-ticketing}?sslmode=disable
       REDIS_URL: redis://redis:6379/0
       BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}@broker:5672/
@@ -344,6 +346,27 @@ services:
       - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9091:9090"
+
+  tempo:
+    profiles: [observability]
+    image: grafana/tempo:2.10.1
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./infra/observability/tempo.yaml:/etc/tempo.yaml:ro
+
+  loki:
+    profiles: [observability]
+    image: grafana/loki:3.7.3
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+
+  promtail:
+    profiles: [observability]
+    image: grafana/promtail:3.6.11
+    command: ["-config.file=/etc/promtail/config.yaml"]
+    depends_on: [loki]
+    volumes:
+      - ./infra/observability/promtail-config.yaml:/etc/promtail/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   grafana:
     profiles: [observability]
