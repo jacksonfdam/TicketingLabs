@@ -41,3 +41,4 @@ tmp/
 
 # Generated TLS material — private keys never belong in git (run infra/tls/gen-certs.sh)
 infra/tls/certs/
+.vercel
