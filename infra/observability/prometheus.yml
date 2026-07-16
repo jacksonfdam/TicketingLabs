@@ -1,0 +1,12 @@
+# Prometheus scrape config. It scrapes the gateway's metrics endpoint, which exposes
+# RED metrics (rate, errors, duration) per router/service/entrypoint for whatever
+# backend is active — so the same config works for all seven with no per-backend setup.
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: traefik
+    static_configs:
+      - targets: ['gateway:8082']

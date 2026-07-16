@@ -10,6 +10,9 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
+  # Dedicated port for Prometheus to scrape; not published to the host.
+  metrics:
+    address: ":8082"
 
 providers:
   file:
@@ -24,7 +27,12 @@ log:
 
 accessLog: {}
 
-# Metrics for the observability stack (Phase 4).
+# Prometheus metrics for the observability stack, served on the dedicated metrics
+# entrypoint. Per-entrypoint and per-service labels give RED metrics without touching
+# the backends, so the dashboards work for all seven identically.
 metrics:
   prometheus:
-    entryPoint: websecure
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    addRoutersLabels: true

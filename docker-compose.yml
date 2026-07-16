@@ -335,6 +335,31 @@ services:
       default:
         aliases: [frontend]
 
+  # Observability stack (opt-in): scrapes the gateway's RED metrics and renders them.
+  #   COMPOSE_PROFILES=<backend>,observability make up
+  prometheus:
+    profiles: [observability]
+    image: prom/prometheus:v3.12.0
+    volumes:
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+
+  grafana:
+    profiles: [observability]
+    image: grafana/grafana:13.1.0
+    depends_on: [prometheus]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin_local_dev_only
+      GF_AUTH_ANONYMOUS_ENABLED: "true"    # no login for the local demo
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+
   gateway:
     image: traefik:v3.7
     depends_on:
