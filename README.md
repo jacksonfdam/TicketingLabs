@@ -42,11 +42,13 @@ Built in phases. Right now:
 - [x] **Phase 3 — All seven backends.** Go, FastAPI, NestJS, Express, Laravel, Symfony,
       and Phalcon each pass the same 16 contract tests, with zero changes to the suite
       or the frontend. The polyglot claim is a passing test, not a promise.
-- [~] **Phase 4 — Resilience and observability.** Circuit breaker + retry/backoff +
+- [x] **Phase 4 — Resilience and observability.** Circuit breaker + retry/backoff +
       timeout on the Go payment path, driven live by the fake gateway's failure switch
-      (graceful degradation: orders stay `pending`, no 5xx). Prometheus + Grafana with a
-      RED dashboard collected at the gateway (works for all backends). Remaining:
-      distributed tracing (OpenTelemetry) and log aggregation (Loki).
+      (graceful degradation: orders stay `pending`, no 5xx). Full three-pillar
+      observability behind the `observability` profile: Prometheus + Grafana RED
+      dashboard (edge metrics, all backends), OpenTelemetry tracing → Tempo (a
+      reservation traces as `POST` → `redis.lock.acquire` → `db.decrement_inventory`),
+      and Loki + Promtail log aggregation.
 - [x] **Phase 5 — Scale.** A k6 stampede (`make load`) proves no overselling — 100 of
       100 seats sold under 400 concurrent attempts, 0 over-sold, 0 5xx — on Go and
       Phalcon, and again with the backend scaled to 3 replicas (all three served, one
