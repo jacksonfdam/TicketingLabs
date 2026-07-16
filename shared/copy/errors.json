@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "description": "User-facing strings keyed by error code, so all three apps say the same thing when the same thing goes wrong. Two layers: `taxonomy` is the app-side typed error taxonomy every platform models; `backendCodes` maps the contract's error.code strings onto a taxonomy key. The app maps a backend code to a typed error, then renders the taxonomy copy. Recovery is an enum the UI turns into a button.",
+    "version": "0.1.0",
+    "recoveryValues": ["retry", "back", "refresh", "signin", "wait", "none"]
+  },
+  "taxonomy": {
+    "NetworkUnavailable": {
+      "title": "No connection",
+      "message": "You appear to be offline. Check your connection and try again.",
+      "recovery": "retry"
+    },
+    "Timeout": {
+      "title": "Taking too long",
+      "message": "The server did not answer in time. It may still be working.",
+      "recovery": "retry"
+    },
+    "Unauthorized": {
+      "title": "Signed out",
+      "message": "Your session has ended. Sign in again to continue.",
+      "recovery": "signin"
+    },
+    "Forbidden": {
+      "title": "Not allowed",
+      "message": "You do not have access to this.",
+      "recovery": "back"
+    },
+    "RateLimited": {
+      "title": "Slow down",
+      "message": "Too many requests. Wait a moment before trying again.",
+      "recovery": "wait"
+    },
+    "Conflict": {
+      "title": "No longer available",
+      "message": "That is gone or has changed. Refresh and pick again.",
+      "recovery": "refresh"
+    },
+    "Validation": {
+      "title": "Check your details",
+      "message": "Some of what you entered was not accepted.",
+      "recovery": "back"
+    },
+    "ServerError": {
+      "title": "Something broke",
+      "message": "The server had a problem. This is not your fault.",
+      "recovery": "retry"
+    },
+    "MalformedResponse": {
+      "title": "Unexpected response",
+      "message": "We received something we could not read and stopped to be safe.",
+      "recovery": "retry"
+    },
+    "PaymentDeclined": {
+      "title": "Payment declined",
+      "message": "Your payment was declined. Try a different method.",
+      "recovery": "back"
+    },
+    "PaymentUnknown": {
+      "title": "Confirming payment",
+      "message": "We are checking with the payment provider. Do not pay again.",
+      "recovery": "wait"
+    },
+    "Unknown": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred.",
+      "recovery": "retry"
+    }
+  },
+  "backendCodes": {
+    "inventory_exhausted": "Conflict",
+    "reservation_expired": "Conflict",
+    "reservation_not_found": "Conflict",
+    "sold_out": "Conflict",
+    "queue_not_admitted": "Conflict",
+    "validation_error": "Validation",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "rate_limited": "RateLimited",
+    "internal_error": "ServerError"
+  }
+}
