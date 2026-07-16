@@ -2,7 +2,9 @@
 // conventional Kotlin Multiplatform layout. Versions come from gradle/libs.versions.toml.
 plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.androidLibrary) apply false
-    // Compose Multiplatform plugins are applied by the (later) :composeApp UI module.
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
 }

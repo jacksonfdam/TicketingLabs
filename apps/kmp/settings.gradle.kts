@@ -27,5 +27,8 @@ dependencyResolutionManagement {
     }
 }
 
-// The framework-free core and its tests. UI modules (composeApp) are added later.
+// The framework-free core and its tests.
 include(":shared")
+// Compose Multiplatform UI. Runs on Desktop (JVM) for headless verification; the same
+// composables back the Android and iOS entry points.
+include(":composeApp")
