@@ -29,14 +29,15 @@ enum class OrderStatus {
  * [OrderStatus.PAID] or [OrderStatus.FAILED] later, observed by polling. A paid order may
  * still move to [OrderStatus.REFUNDED].
  *
- * @property amount the total charged, in minor units.
+ * @property amountCents the total charged, in minor units. The contract's `Order` carries
+ *   no currency of its own; the UI takes the currency from the sector/event context.
  * @property createdAt when the order was created.
  */
 data class Order(
     val id: OrderId,
     val reservationId: ReservationId,
     val userId: UserId,
-    val amount: Money,
+    val amountCents: Int,
     val status: OrderStatus,
     val createdAt: Timestamp,
 ) {
