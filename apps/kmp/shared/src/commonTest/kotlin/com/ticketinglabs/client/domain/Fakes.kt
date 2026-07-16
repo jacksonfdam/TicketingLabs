@@ -1,7 +1,6 @@
 package com.ticketinglabs.client.domain
 
 import com.ticketinglabs.client.core.Outcome
-import com.ticketinglabs.client.domain.model.Money
 import com.ticketinglabs.client.domain.model.Order
 import com.ticketinglabs.client.domain.model.OrderId
 import com.ticketinglabs.client.domain.model.OrderStatus
@@ -61,7 +60,7 @@ fun order(status: OrderStatus): Order = Order(
     id = OrderId("o1"),
     reservationId = ReservationId("r1"),
     userId = UserId("u1"),
-    amount = Money(1000, "GBP"),
+    amountCents = 1000,
     status = status,
     createdAt = Timestamp(0),
 )
