@@ -44,7 +44,9 @@ Built in phases. Right now:
       or the frontend. The polyglot claim is a passing test, not a promise.
 - [ ] **Phase 4 — Resilience and observability**, live failure injection, dashboards,
       distributed tracing.
-- [ ] **Phase 5 — Scale**, load tests proving no overselling, horizontal scaling,
+- [~] **Phase 5 — Scale.** Load test done: a k6 stampede (`make load`) proves no
+      overselling — 100 of 100 seats sold under 400 concurrent attempts, 0 over-sold,
+      0 5xx, verified on Go and Phalcon. Remaining: horizontal-scale demo and
       Kubernetes manifests.
 - [ ] **Phase 6 — Recipes**, one per concept per backend.
 
