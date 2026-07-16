@@ -236,6 +236,51 @@ services:
     environment:
       <<: *laravel-env
 
+  # Symfony, like Laravel, runs as two processes: FrankenPHP serving HTTP (takes the
+  # "backend" alias) and a console worker consuming payment.requested.
+  backend-symfony:
+    profiles: [symfony]
+    build: ./backends/symfony
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment: &symfony-env
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      APP_SECRET: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6
+      # Router default_uri for URL generation outside an HTTP request (e.g. the worker).
+      DEFAULT_URI: https://localhost
+      DATABASE_URL: postgresql://${APP_DB_USER:-ticketing_app}:${APP_DB_PASSWORD:-app_local_dev_only}@postgres:5432/${POSTGRES_DB:-ticketing}
+      REDIS_URL: redis://redis:6379/0
+      BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}@broker:5672/
+      JWT_SECRET: ${JWT_SECRET:-local_dev_only_change_me_jwt_signing_secret_0123456789}
+      ACCESS_TOKEN_TTL_SECONDS: ${ACCESS_TOKEN_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS:-1209600}
+      PAYMENT_GATEWAY_URL: http://payment-gateway-fake:9090
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-dev_webhook_secret}
+      RESERVATION_TTL_SECONDS: ${RESERVATION_TTL_SECONDS:-120}
+      QUEUE_ADMIT_BATCH: ${QUEUE_ADMIT_BATCH:-50}
+    networks:
+      default:
+        aliases: [backend]
+
+  backend-symfony-worker:
+    profiles: [symfony]
+    build: ./backends/symfony
+    depends_on:
+      postgres:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    entrypoint: ["php"]
+    command: ["bin/console", "app:payments:work"]
+    environment:
+      <<: *symfony-env
+
   gateway:
     image: traefik:v3.7
     depends_on:
