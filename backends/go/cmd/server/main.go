@@ -53,7 +53,10 @@ func main() {
 	}
 	defer bkr.Close()
 
-	gateway := paymentgw.New(cfg.PaymentGatewayURL)
+	// The gateway client has a hard timeout; wrap it in a circuit breaker so a provider
+	// outage trips OPEN after 5 consecutive failures and fast-fails for 10s rather than
+	// hammering it. Retry-with-backoff lives in the payment worker below.
+	gateway := paymentgw.NewBreakerGateway(paymentgw.New(cfg.PaymentGatewayURL), 5, 10*time.Second)
 	clock := platform.SystemClock{}
 	ids := platform.UUIDGenerator{}
 
