@@ -281,6 +281,51 @@ services:
     environment:
       <<: *symfony-env
 
+  # Phalcon (a PHP C extension) runs as two processes from one image: FrankenPHP serving
+  # HTTP (takes the "backend" alias) and a CLI worker consuming payment.requested. It
+  # reads discrete DB_* vars because its DB factory builds the Phalcon adapter directly.
+  backend-phalcon:
+    profiles: [phalcon]
+    build: ./backends/phalcon
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    environment: &phalcon-env
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-ticketing}
+      DB_USER: ${APP_DB_USER:-ticketing_app}
+      DB_PASS: ${APP_DB_PASSWORD:-app_local_dev_only}
+      REDIS_URL: redis://redis:6379/0
+      BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}@broker:5672/
+      JWT_SECRET: ${JWT_SECRET:-local_dev_only_change_me_jwt_signing_secret_0123456789}
+      ACCESS_TOKEN_TTL_SECONDS: ${ACCESS_TOKEN_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS:-1209600}
+      PAYMENT_GATEWAY_URL: http://payment-gateway-fake:9090
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-dev_webhook_secret}
+      RESERVATION_TTL_SECONDS: ${RESERVATION_TTL_SECONDS:-120}
+      QUEUE_ADMIT_BATCH: ${QUEUE_ADMIT_BATCH:-50}
+    networks:
+      default:
+        aliases: [backend]
+
+  backend-phalcon-worker:
+    profiles: [phalcon]
+    build: ./backends/phalcon
+    depends_on:
+      postgres:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    entrypoint: ["php"]
+    command: ["bin/worker.php"]
+    environment:
+      <<: *phalcon-env
+
   gateway:
     image: traefik:v3.7
     depends_on:
