@@ -20,6 +20,13 @@ type Config struct {
 	PaymentWebhookSecret string
 	ReservationTTL       time.Duration
 	QueueAdmitBatch      int
+
+	// Optional mutual-TLS listener for gateway <-> backend. Off unless MTLS_ENABLED.
+	MTLSEnabled  bool
+	MTLSAddr     string
+	MTLSCertFile string
+	MTLSKeyFile  string
+	MTLSCAFile   string
 }
 
 func Load() Config {
@@ -35,6 +42,11 @@ func Load() Config {
 		PaymentWebhookSecret: env("PAYMENT_WEBHOOK_SECRET", "dev_webhook_secret"),
 		ReservationTTL:       time.Duration(envInt("RESERVATION_TTL_SECONDS", 120)) * time.Second,
 		QueueAdmitBatch:      envInt("QUEUE_ADMIT_BATCH", 50),
+		MTLSEnabled:          os.Getenv("MTLS_ENABLED") == "true",
+		MTLSAddr:             env("MTLS_ADDR", ":8443"),
+		MTLSCertFile:         env("MTLS_CERT_FILE", "/certs/server.crt"),
+		MTLSKeyFile:          env("MTLS_KEY_FILE", "/certs/server.key"),
+		MTLSCAFile:           env("MTLS_CA_FILE", "/certs/ca.crt"),
 	}
 }
 

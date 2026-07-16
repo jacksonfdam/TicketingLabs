@@ -5,6 +5,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"log"
@@ -110,12 +112,43 @@ func main() {
 	}
 
 	routes := httptransport.NewServer(authSvc, eventSvc, queueSvc, reservationSvc, orderSvc, paymentSvc, tokens, cfg.PaymentWebhookSecret, readiness).Routes()
+	// otelhttp creates a server span per request; child spans (lock, decrement) nest under
+	// it via the request context.
+	handler := otelhttp.NewHandler(routes, "http.server")
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		// otelhttp creates a server span per request; child spans (lock, decrement) nest
-		// under it via the request context.
-		Handler:           otelhttp.NewHandler(routes, "http.server"),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	// Optional mutual-TLS listener. When enabled, the backend accepts connections only
+	// from a client presenting a certificate signed by our CA (the gateway), and the
+	// client in turn verifies the backend's certificate — neither trusts the network.
+	if cfg.MTLSEnabled {
+		caPEM, err := os.ReadFile(cfg.MTLSCAFile)
+		if err != nil {
+			log.Fatalf("mtls: read ca: %v", err)
+		}
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM(caPEM) {
+			log.Fatalf("mtls: bad ca file")
+		}
+		mtlsSrv := &http.Server{
+			Addr:    cfg.MTLSAddr,
+			Handler: handler,
+			TLSConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+				ClientAuth: tls.RequireAndVerifyClientCert, // the crux of mTLS
+				ClientCAs:  pool,
+			},
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		go func() {
+			log.Printf("mTLS listening on %s", cfg.MTLSAddr)
+			if err := mtlsSrv.ListenAndServeTLS(cfg.MTLSCertFile, cfg.MTLSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalf("mtls server: %v", err)
+			}
+		}()
 	}
 
 	go func() {

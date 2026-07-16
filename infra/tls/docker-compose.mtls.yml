@@ -1,0 +1,16 @@
+# Overlay that turns on the Go backend's mutual-TLS listener, as the worked example of
+# gateway <-> service mTLS. Generate the certs first (infra/tls/gen-certs.sh), then:
+#
+#   COMPOSE_PROFILES=go docker compose \
+#     -f docker-compose.yml -f infra/tls/docker-compose.mtls.yml up -d
+#
+# The backend now also listens on :8443 and rejects any client that does not present a
+# certificate signed by our CA. See docs/recipes/mtls-gateway-backend.md.
+services:
+  backend-go:
+    environment:
+      MTLS_ENABLED: "true"
+    volumes:
+      - ./infra/tls/certs:/certs:ro
+    ports:
+      - "8443:8443"
