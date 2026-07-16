@@ -16,7 +16,7 @@ name: ticketing-labs
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ticketing}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -24,7 +24,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Postgres 18+ images store data under /var/lib/postgresql (major-version
+      # subdirectories), not /var/lib/postgresql/data. Mount the parent accordingly.
+      - pgdata:/var/lib/postgresql
       # Applied in order on first init: schema, then role, then seed.
       - ./contract/db/migrations/0001_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
       - ./contract/db/migrations/0002_app_role.sql:/docker-entrypoint-initdb.d/02_role.sql:ro
@@ -36,7 +38,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
@@ -49,7 +51,7 @@ services:
       retries: 10
 
   broker:
-    image: rabbitmq:3.13-management-alpine
+    image: rabbitmq:4-management
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest_local_dev_only}
@@ -183,7 +185,7 @@ services:
         aliases: [backend]
 
   gateway:
-    image: traefik:v3.3
+    image: traefik:v3.7
     depends_on:
       postgres:
         condition: service_healthy

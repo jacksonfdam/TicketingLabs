@@ -23,6 +23,6 @@ as `ticketing_app`.
 
 ## Verified
 
-These files have been applied against `postgres:16-alpine`. The
+These files have been applied against `postgres:18-alpine`. The
 `available_inventory >= 0` check rejects an oversell, and `ticketing_app` is denied
 `CREATE TABLE`. If you change the schema, re-run that check.
