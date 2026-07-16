@@ -1,10 +1,11 @@
 // Root build script. Plugins are declared here (apply false) and applied per module, the
-// conventional Kotlin Multiplatform layout. Versions come from gradle/libs.versions.toml.
+// layout of the official Compose Multiplatform template. Versions come from
+// gradle/libs.versions.toml.
 plugins {
-    alias(libs.plugins.kotlinMultiplatform) apply false
-    alias(libs.plugins.kotlinJvm) apply false
-    alias(libs.plugins.kotlinSerialization) apply false
-    alias(libs.plugins.androidLibrary) apply false
-    alias(libs.plugins.composeMultiplatform) apply false
-    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlin.multiplatform).apply(false)
+    alias(libs.plugins.compose.compiler).apply(false)
+    alias(libs.plugins.compose.multiplatform).apply(false)
+    alias(libs.plugins.android.application).apply(false)
+    alias(libs.plugins.android.kmp.library).apply(false)
+    alias(libs.plugins.kotlinx.serialization).apply(false)
 }

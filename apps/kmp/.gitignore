@@ -1,7 +1,15 @@
 # Gradle
 .gradle/
+.kotlin/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+
+# CocoaPods (iosApp)
+Pods/
 
 # Local config
 local.properties

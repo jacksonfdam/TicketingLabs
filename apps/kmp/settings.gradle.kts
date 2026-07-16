@@ -1,4 +1,4 @@
-rootProject.name = "ticketing-kmp"
+rootProject.name = "Ticketing-kmp"
 
 pluginManagement {
     repositories {
@@ -7,10 +7,11 @@ pluginManagement {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
                 includeGroupByRegex("androidx.*")
+                includeGroupByRegex("android.*")
             }
         }
-        mavenCentral()
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
@@ -21,14 +22,12 @@ dependencyResolutionManagement {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
                 includeGroupByRegex("androidx.*")
+                includeGroupByRegex("android.*")
             }
         }
         mavenCentral()
     }
 }
 
-// The framework-free core and its tests.
-include(":shared")
-// Compose Multiplatform UI. Runs on Desktop (JVM) for headless verification; the same
-// composables back the Android and iOS entry points.
-include(":composeApp")
+include(":sharedUI")
+include(":androidApp")
