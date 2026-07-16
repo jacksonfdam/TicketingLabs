@@ -33,7 +33,7 @@ class Broker:
     async def consume(self, topic: str, handler: Callable[[bytes], Awaitable[None]]) -> None:
         """Runs handler for each message. The handler owns retry/timeout policy; a
         message whose handler raises is dropped (not requeued) so a poison message
-        cannot hot-loop the worker. Dead-lettering is a Phase 4 refinement.
+        cannot hot-loop the worker. Dead-lettering is a later refinement.
         """
         queue = await self._channel.declare_queue(topic, durable=True)
 

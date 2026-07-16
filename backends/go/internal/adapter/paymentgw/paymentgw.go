@@ -1,6 +1,6 @@
 // Package paymentgw is the HTTP client for the (fake) external payment provider. It
 // has a hard timeout so a hanging provider cannot hang our worker. Retry with backoff
-// lives in the worker; the circuit breaker arrives in Phase 4.
+// lives in the worker; the circuit breaker wraps it (see breaker.go).
 package paymentgw
 
 import (

@@ -24,8 +24,8 @@ def base_url() -> str:
 def backend_up(base_url: str) -> bool:
     """Skip the whole suite gracefully if nothing is listening yet.
 
-    In Phase 0 no backend exists, so the suite is executable and green-by-skip.
-    From Phase 1 on, /health answering is the entry ticket to being tested.
+    With no backend up, the suite is executable and green-by-skip; once a backend
+    answers /health, that is the entry ticket to being tested.
     """
     try:
         r = requests.get(f"{base_url}/health", timeout=2, verify=False)

@@ -1,14 +1,10 @@
 # Base compose for the ticketing lab.
 #
-# Phase 0 brings up the shared infrastructure every backend depends on: Postgres,
-# Redis, the RabbitMQ broker, the fake payment gateway, and the Traefik API gateway.
-# The backend service itself lands in Phase 1; until then /api has nothing healthy to
-# route to, which is expected.
-#
-# Profiles let one file serve several situations:
-#   docker compose up -d                       # core infra
-#   docker compose --profile demo up -d        # + anything demo-only
-#   docker compose --profile load up -d        # + load-testing tooling
+# The always-on services are the shared infrastructure every backend depends on:
+# Postgres, Redis, the RabbitMQ broker, the fake payment gateway, the Traefik API
+# gateway, and the SPA. A backend is selected with a compose profile (one of go,
+# fastapi, nest, express, laravel, symfony, phalcon); add "observability" to also run
+# Prometheus/Grafana/Tempo/Loki. Exactly one backend takes the "backend" network alias.
 #
 # Everything reads from .env (copy .env.example first).
 

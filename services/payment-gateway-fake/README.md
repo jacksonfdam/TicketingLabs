@@ -22,7 +22,7 @@ the compliance paperwork. It exists so the backends have something to be resilie
 
 After a charge settles, the gateway POSTs to `WEBHOOK_TARGET_URL` with header
 `X-Signature: hex(HMAC_SHA256(secret, raw_body))`. Backends verify this before
-trusting the payload. See the webhook-signature recipe (Phase 4).
+trusting the payload. See the security-layers recipe.
 
 ## Configuration
 

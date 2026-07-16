@@ -21,13 +21,13 @@ elegant its dependency injection is.
 ```bash
 pip install -r requirements.txt
 
-# Phase 0: no backend up yet. Everything skips cleanly. This is expected and green.
+# No backend up: everything skips cleanly. This is expected and green.
 pytest -v
 
-# Phase 1 onward: point at a live backend behind the gateway.
+# With a backend running: point at it behind the gateway.
 TARGET_URL=https://localhost/api pytest -v
 ```
 
 With no backend responding at `TARGET_URL/health`, the suite skips rather than
-fails. An empty-but-executable suite is the Phase 0 deliverable; the assertions
-switch on as backends implement the endpoints.
+fails. An empty-but-executable suite is the starting point; the assertions
+switch on once a backend implements the endpoints.

@@ -1,5 +1,5 @@
 """HTTP client for the fake payment gateway, with a hard timeout so a hanging provider
-cannot hang the worker. Retry/backoff lives in the worker; circuit breaker is Phase 4.
+cannot hang the worker. Retry/backoff lives in the worker; a circuit breaker would wrap it (implemented in the Go backend).
 """
 from __future__ import annotations
 

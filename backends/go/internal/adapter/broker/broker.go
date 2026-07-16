@@ -55,7 +55,7 @@ func (b *Broker) Publish(ctx context.Context, topic string, payload []byte) erro
 // Consume runs handler for each message on topic. The handler owns its own retry and
 // timeout policy; this loop simply acks on success and drops (does not requeue) on
 // failure so a poison message cannot hot-loop the worker. A real system would route
-// failures to a dead-letter queue; that is a Phase 4 refinement.
+// failures to a dead-letter queue; that is a later refinement.
 func (b *Broker) Consume(ctx context.Context, topic string, handler func(context.Context, []byte) error) error {
 	if err := b.declare(topic); err != nil {
 		return err

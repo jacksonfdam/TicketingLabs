@@ -22,47 +22,36 @@ Three rules the whole repo is built to keep true:
 3. **Frameworks only do delivery.** Business rules live in a framework-agnostic
    service layer. See [ADR 0003](docs/adr/0003-hexagonal-service-layer.md).
 
-## Status
+## What's built
 
-Built in phases. Right now:
-
-- [x] **Phase 0 — Foundation.** Contract, domain model, database schema, shared
-      infrastructure (Postgres, Redis, RabbitMQ, Traefik, fake payment gateway),
-      executable contract-test scaffold.
-- [x] **Phase 1 — Reference backend** (Go). Full hexagonal implementation of the
-      contract: idempotent reservations with a distributed lock and atomic stock
-      decrement, TTL holds with a sweeper, async payment via RabbitMQ, signed
-      webhooks, JWT with refresh rotation. Passes the full contract suite (16 tests)
-      and a 500-buyers-vs-100-tickets overselling proof under `-race`.
-- [x] **Phase 2 — Frontend** (React + Vite + TS). SPA with a typed client generated
-      from the contract, TanStack Query caching, route-level code splitting, in-memory
-      tokens with refresh rotation, and the full flow (events → waiting room → reserve
-      with countdown → checkout → order polling). Served behind the gateway; verified
-      end-to-end in a browser against the live stack.
-- [x] **Phase 3 — All seven backends.** Go, FastAPI, NestJS, Express, Laravel, Symfony,
-      and Phalcon each pass the same 16 contract tests, with zero changes to the suite
-      or the frontend. The polyglot claim is a passing test, not a promise.
-- [x] **Phase 4 — Resilience and observability.** Circuit breaker + retry/backoff +
-      timeout on the Go payment path, driven live by the fake gateway's failure switch
-      (graceful degradation: orders stay `pending`, no 5xx). Full three-pillar
-      observability behind the `observability` profile: Prometheus + Grafana RED
-      dashboard (edge metrics, all backends), OpenTelemetry tracing → Tempo (a
-      reservation traces as `POST` → `redis.lock.acquire` → `db.decrement_inventory`),
-      and Loki + Promtail log aggregation.
-- [x] **Phase 5 — Scale.** A k6 stampede (`make load`) proves no overselling — 100 of
-      100 seats sold under 400 concurrent attempts, 0 over-sold, 0 5xx — on Go and
-      Phalcon, and again with the backend scaled to 3 replicas (all three served, one
-      shared Postgres + Redis). Kubernetes manifests (Deployment, Service, HPA, probes,
-      ConfigMap/Secret, Ingress) in `infra/k8s`, schema-validated.
-- [x] **Phase 6 — Recipes.** Fourteen concept recipes in [docs/recipes](docs/recipes/)
-      (idempotency, distributed lock, no-overselling, scale, queue, circuit breaker,
-      async payment, JWT rotation, mTLS, security layers, rate limiting, HTTP caching,
-      RED metrics, tracing), each pointing at real code, plus a per-backend README for
-      each of the seven stacks and six ADRs. The educational product the lab was built to be.
-- [x] **Security hardening.** Gateway↔backend **mutual TLS** (worked example on the Go
-      backend: client cert required, verified), the section-8 checklist mapped to code,
-      and the encryption-at-rest strategy documented. `make certs` generates the local
-      dev CA (keys gitignored).
+- **The contract** — one OpenAPI spec (`contract/openapi.yaml`) that every backend
+  implements and the frontend generates its client from, plus a shared Postgres schema
+  and a contract test suite that runs against any backend.
+- **Seven backends**, each a full hexagonal implementation of the contract, each passing
+  the same 16 contract tests with zero changes to the suite or the frontend:
+  **Go, FastAPI, NestJS, Express, Laravel, Symfony, Phalcon**. Idempotent reservations
+  with a distributed lock and atomic stock decrement, TTL holds with a sweeper, async
+  payment via RabbitMQ, signed webhooks, JWT with refresh rotation.
+- **A frontend** (React + Vite + TS) with a typed client generated from the contract,
+  TanStack Query caching, route-level code splitting, in-memory tokens with refresh
+  rotation, and the full flow — events → waiting room → reserve with countdown →
+  checkout → order polling — verified end-to-end in a browser.
+- **Resilience** — circuit breaker + retry/backoff + timeout on the payment path, driven
+  live by the fake gateway's runtime failure switch (graceful degradation: orders stay
+  `pending`, no 5xx).
+- **Observability** — Prometheus + Grafana RED dashboard (edge metrics, works for every
+  backend), OpenTelemetry tracing → Tempo (a reservation traces as `POST` →
+  `redis.lock.acquire` → `db.decrement_inventory`), Loki + Promtail logs.
+- **Scale** — a k6 stampede (`make load`) proving no overselling (100 of 100 seats under
+  400 concurrent attempts, 0 over-sold, 0 5xx) on multiple backends and across 3
+  replicas sharing one Postgres + Redis; Kubernetes manifests (Deployment, Service, HPA,
+  probes, ConfigMap/Secret, Ingress) in `infra/k8s`.
+- **Security** — gateway↔backend mutual TLS (worked example, client cert required and
+  verified), least-privilege DB role, signed webhooks, rate limiting, strict input
+  validation, error envelopes that leak nothing. See the
+  [security-layers recipe](docs/recipes/security-layers.md).
+- **The recipes** — fourteen concept write-ups in [docs/recipes](docs/recipes/), each
+  pointing at real code, plus a README per backend and the ADRs behind the key decisions.
 
 ## Quick start
 
@@ -109,7 +98,7 @@ or scoped-future — see [docs/status.md](docs/status.md).
 contract/     openapi.yaml (source of truth), db schema + migrations, contract tests
 backends/     one directory per framework: go, fastapi, nest, express, laravel, symfony, phalcon
 services/     payment-gateway-fake (external provider simulator with a failure switch)
-frontend/     React + Vite + TypeScript SPA (Phase 2)
+frontend/     React + Vite + TypeScript SPA
 infra/        gateway config, k8s manifests, observability, load tests
 docs/         architecture.md, domain-model.md, adr/, recipes/
 ```
@@ -124,4 +113,4 @@ docs/         architecture.md, domain-model.md, adr/, recipes/
 
 ## License
 
-MIT. See the license field in the contract; a full `LICENSE` file lands with Phase 6.
+MIT. See the license field in the contract.

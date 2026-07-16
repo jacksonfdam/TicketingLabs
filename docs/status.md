@@ -79,10 +79,10 @@ Nothing here is aspirational — each ✅ links to code or a recipe and was exer
 | Reservation TTL with automatic release | ✅ | sweeper (`SweepExpired`) |
 | Load-test proof of no overselling | ✅ | [no-overselling-under-load](recipes/no-overselling-under-load.md), [horizontal-scale](recipes/horizontal-scale-no-oversell.md) |
 
-## Phases (spec §14)
+## Deliverables (spec §14) — all delivered
 
-0 Foundation ✅ · 1 Go reference ✅ · 2 Frontend ✅ · 3 All seven backends ✅ ·
-4 Resilience + observability ✅ · 5 Load test + scale + k8s ✅ · 6 Recipes + ADRs ✅.
+Foundation (contract, schema, infra) ✅ · reference backend ✅ · frontend ✅ · all seven
+backends ✅ · resilience + observability ✅ · load test + scale + k8s ✅ · recipes + ADRs ✅.
 
 ## Outstanding (all non-security, scoped as future work)
 

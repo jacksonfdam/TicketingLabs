@@ -34,7 +34,7 @@ export class Broker implements Publisher {
 
   // Runs handler for each message. The handler owns retry/timeout policy; a message
   // whose handler throws is dropped (not requeued) so a poison message cannot hot-loop
-  // the worker. Dead-lettering is a Phase 4 refinement.
+  // the worker. Dead-lettering is a later refinement.
   async consume(topic: string, handler: (body: Buffer) => Promise<void>): Promise<void> {
     await this.channel.assertQueue(topic, { durable: true });
     await this.channel.consume(topic, async (msg) => {

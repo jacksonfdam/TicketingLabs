@@ -15,7 +15,7 @@ Run against a live backend:
 
     TARGET_URL=https://localhost/api pytest contract/tests -v
 
-With no backend up, every test skips cleanly. That is Phase 0 passing.
+With no backend up, every test skips cleanly, which is the expected green.
 """
 import os
 

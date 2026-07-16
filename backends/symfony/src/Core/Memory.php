@@ -2,7 +2,7 @@
 
 // In-process implementations of the ports for unit testing, with no database. PHP is
 // single-threaded, so these tests are sequential; the true concurrency proof for this
-// backend is the atomic conditional UPDATE exercised by the Phase 5 load test against
+// backend is the atomic conditional UPDATE exercised by the load test against
 // real Postgres. The sequential tests still pin the use-case logic (exhaustion,
 // idempotency, release, sweep).
 
