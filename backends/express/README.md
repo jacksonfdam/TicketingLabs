@@ -47,9 +47,9 @@ TARGET_URL=https://localhost/api pytest -v   # shared contract suite
 
 ## Notes
 
-- **No async error swallowing.** Express 4 does not catch errors thrown in async route
-  handlers, so every handler is wrapped in a small `wrap()` that forwards rejections to
-  the error middleware. Forget it once and a thrown error becomes a hung request.
+- **Async errors.** Express 5 forwards rejected promises from async handlers to the
+  error middleware automatically (Express 4 did not). We keep a small `wrap()` helper
+  anyway, as belt-and-suspenders and to make the error path explicit for readers.
 - **Raw body for webhooks.** `express.json` is configured with a `verify` hook that
   stashes `rawBody`, which the webhook route needs for HMAC verification.
 - **Lenient UUID check.** Like the NestJS backend, path/cursor ids are validated with a

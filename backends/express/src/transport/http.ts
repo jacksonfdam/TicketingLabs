@@ -28,8 +28,9 @@ export interface Deps {
   readiness: () => Promise<Record<string, string>>;
 }
 
-// Express 4 does not catch errors thrown in async handlers, so every handler is wrapped
-// to funnel rejections into the error middleware.
+// Express 5 forwards rejected promises from async handlers to the error middleware on
+// its own, but we keep this explicit wrapper: it is belt-and-suspenders, and it makes
+// the error path obvious to a reader rather than relying on framework magic.
 type AsyncHandler = (req: Request, res: Response) => Promise<void>;
 const wrap =
   (fn: AsyncHandler) =>
