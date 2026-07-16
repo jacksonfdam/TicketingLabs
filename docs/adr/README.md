@@ -11,3 +11,5 @@ after Michael Nygard. See ADR 1 for the why.
 | [0004](0004-secrets-management.md) | Secrets come from the environment, never the repository | Accepted |
 | [0005](0005-openapi-3-1-and-schemathesis.md) | OpenAPI 3.1.0 with Schemathesis 3.1 support enabled | Accepted |
 | [0006](0006-backend-switching-via-compose-profiles.md) | Switch the active backend with a Docker Compose profile | Accepted |
+| [0007](0007-three-clients-one-contract.md) | Three client apps, one contract, no backend awareness | Accepted |
+| [0008](0008-shared-client-assets-single-source.md) | Client apps share artefacts, not source | Accepted |
