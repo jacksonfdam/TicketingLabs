@@ -12,20 +12,23 @@ Complete and verified via Gradle. Two modules:
   Android and iOS** (`./gradlew :shared:allTests`); the JVM run alone is 23 tests covering
   input hardening, the double-tap idempotency key, the payment unknown-outcome mapping, the
   order reconciler, defensive deserialization and error mapping (Ktor MockEngine).
-- `:composeApp` — the Compose Multiplatform UI. State holders (ViewModels), the design
-  system, the seven screens, the preview gallery and the demo flow live in `commonMain` and
-  compile on the **Desktop** target (`./gradlew :composeApp:compileKotlinDesktop`), which is
-  the target run headlessly. The Android and iOS entry points reuse the same composables and
-  are the remaining wiring (a thin Activity and UIViewController).
+- `:composeApp` — the Compose Multiplatform UI. State holders (multiplatform `ViewModel`s),
+  the design system, the seven screens, the unified `@Preview`s and the demo flow live in
+  `commonMain` and are shared verbatim across **Android, iOS and Desktop**. Each platform
+  contributes only a thin entry point: `desktopMain/Main.kt` (window), `androidMain/
+  MainActivity.kt`, `iosMain/MainViewController.kt`. All three targets compile; Desktop is
+  the target run headlessly, and 10 ViewModel checks run on it (`:composeApp:desktopTest`).
 
 Toolchain: JDK 21 (Corretto), Gradle 9.4.1, Kotlin 2.4.10, AGP 9.2.1. JDK 25 is present but
 Kotlin has no JDK 25 target yet, so the build runs on JDK 21.
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-./gradlew :shared:allTests                 # JVM + Android + iOS-sim
-./gradlew :composeApp:compileKotlinDesktop # Compose UI compiles
-./gradlew :composeApp:run                  # launch the desktop demo (needs a display)
+./gradlew :shared:allTests                          # JVM + Android + iOS-sim (23 each)
+./gradlew :composeApp:desktopTest                   # ViewModel tests on desktop (10)
+./gradlew :composeApp:compileAndroidMain \
+          :composeApp:compileKotlinIosSimulatorArm64 # mobile targets compile
+./gradlew :composeApp:run                           # launch the desktop demo (needs a display)
 ```
 
 ## Versions
@@ -60,12 +63,15 @@ a simulator:
     data/        Ktor adapter → gateway base URL, DTO → domain mapping, error map   [done]
   src/commonTest/kotlin/...     use-case, domain and data tests (MockEngine)         [done]
 
-:composeApp                   Compose Multiplatform UI. Target: desktop (jvm).        [done]
+:composeApp                   Compose Multiplatform UI. Targets: desktop + android + ios. [done]
   src/commonMain/kotlin/com/ticketinglabs/client/
     presentation/ ViewModels + StateFlow (events, waiting, reservation, order)
     ui/           atoms → components → screens, theme (tokens), gallery, previews
     demo/         in-memory repositories for the runnable demo
+  src/commonTest/   ViewModel tests (run on desktop via Dispatchers.setMain)
   src/desktopMain/  Main.kt (window entry hosting the flow + gallery)
+  src/androidMain/  MainActivity (ComponentActivity → setContent { App() })
+  src/iosMain/      MainViewController (ComposeUIViewController { App() })
 ```
 
 Previews use the unified `@Preview` in `commonMain` (see `ui/Previews.kt`) and the runnable
