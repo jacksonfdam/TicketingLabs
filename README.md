@@ -60,10 +60,14 @@ Native — so you can compare how each platform solves the same problems. Same c
 same seven-screen flow, same states, each app blind to the backend behind a single base
 URL. It is the mobile companion to the seven backends above.
 
-Current state: **scaffolded**. The single-sourced [`shared/`](shared/) assets are in place
-(contract mirror, design tokens, scenario list, error copy), the [`apps/`](apps/) folders
-and their READMEs exist, and the client architecture and state machines are documented.
-No app code is written yet; the reference app is the next step.
+Current state: **shared assets done, KMP reference core in progress**. The single-sourced
+[`shared/`](shared/) assets are in place (contract mirror, design tokens, scenario list,
+error copy), the client architecture and state machines are documented, and the Kotlin
+Multiplatform reference app's framework-free core — result type, typed error taxonomy,
+state model, domain models, repository ports, and the first use cases (idempotent
+reservation, payment order create, order reconciler) — is implemented with a test suite,
+verified by compiling with `kotlinc` and exercising the logic on the JVM. The Compose UI,
+the HTTP data adapter, and the other two apps are next.
 
 - [apps/README.md](apps/README.md) — the three clients and build order.
 - [shared/README.md](shared/README.md) — what is single-sourced and why.
