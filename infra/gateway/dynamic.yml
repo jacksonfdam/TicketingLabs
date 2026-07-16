@@ -7,18 +7,41 @@
 
 http:
   routers:
+    # /api goes to the active backend (higher priority than the SPA catch-all). Served on
+    # both HTTP and HTTPS; the TLS variant is a separate router so the same rule works on
+    # the plain-HTTP entrypoint too.
     api:
       rule: "PathPrefix(`/api`)"
+      priority: 100
       entryPoints: [websecure]
       service: active-backend
-      middlewares:
-        - strip-api
-        - request-id
-        - edge-rate-limit
-        - security-headers
+      middlewares: [strip-api, request-id, edge-rate-limit, security-headers]
       tls: {}
+    api-http:
+      rule: "PathPrefix(`/api`)"
+      priority: 100
+      entryPoints: [web]
+      service: active-backend
+      middlewares: [strip-api, request-id, edge-rate-limit, security-headers]
+    # Everything else is the SPA, served from the same origin (so no CORS, and the
+    # frontend never learns which backend answers /api).
+    frontend:
+      rule: "PathPrefix(`/`)"
+      priority: 1
+      entryPoints: [websecure]
+      service: frontend
+      tls: {}
+    frontend-http:
+      rule: "PathPrefix(`/`)"
+      priority: 1
+      entryPoints: [web]
+      service: frontend
 
   services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:8080"
     active-backend:
       loadBalancer:
         # The host "backend" resolves to whichever backend container is running under

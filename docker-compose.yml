@@ -326,6 +326,15 @@ services:
     environment:
       <<: *phalcon-env
 
+  # The SPA, served as static files behind the gateway at the root origin. Because it
+  # shares the gateway's origin with /api, there is no CORS to configure and the browser
+  # never learns which backend answers. No profile: it runs with every backend.
+  frontend:
+    build: ./frontend
+    networks:
+      default:
+        aliases: [frontend]
+
   gateway:
     image: traefik:v3.7
     depends_on:

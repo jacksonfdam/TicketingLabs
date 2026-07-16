@@ -3,13 +3,11 @@
 # is a change here (and in the dynamic config), never a change in the frontend.
 
 entryPoints:
+  # Plain HTTP is served directly for local development and browser access. A real
+  # deployment would redirect this to websecure; that one-line redirect is intentionally
+  # left out here so the self-signed local cert does not get in the way of clicking around.
   web:
     address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
   websecure:
     address: ":443"
 
