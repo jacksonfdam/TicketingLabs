@@ -3,7 +3,6 @@
 // impossible at the database, exactly as in the Go and FastAPI backends.
 
 import { Pool } from 'pg';
-import { validate as isUuid } from 'uuid';
 
 import { Errors } from '../domain/errors';
 import {
@@ -30,6 +29,13 @@ import {
   SectorRepository,
   UserRepository,
 } from '../usecase/ports';
+
+// A lenient UUID shape check: 8-4-4-4-12 hex. Deliberately NOT the uuid package's
+// validate(), which enforces RFC 4122 version/variant bits and so rejects the lab's
+// tidy seed ids like 1111...1111. Postgres, Go, and Python all accept those; we match
+// that leniency and only reject genuinely malformed ids (which would else 500 the DB).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (s: string): boolean => UUID_RE.test(s);
 
 const UNIQUE_VIOLATION = '23505';
 
