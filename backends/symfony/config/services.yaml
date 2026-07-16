@@ -1,0 +1,105 @@
+# Composition root. Symfony's idiom is explicit container configuration: every port is
+# aliased to a concrete adapter, and the use cases are wired with their dependencies and
+# scalar config. This is the deliberate contrast with Laravel's service-provider closures
+# and NestJS's decorator-driven graph. See ADR 0003.
+
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            string $webhookSecret: '%env(PAYMENT_WEBHOOK_SECRET)%'
+
+    # Auto-register controllers, subscribers, and commands in src/, but NOT the
+    # framework-free core (wired explicitly below) or the Kernel.
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Core/'
+            - '../src/Kernel.php'
+
+    # --- infrastructure ---
+    Doctrine\DBAL\Connection:
+        factory: ['App\Platform\DbFactory', 'create']
+        arguments: ['%env(DATABASE_URL)%']
+
+    Predis\Client:
+        factory: ['App\Platform\RedisFactory', 'create']
+        arguments: ['%env(REDIS_URL)%']
+
+    App\Adapter\RedisAdapter:
+        arguments: ['@Predis\Client']
+    App\UseCase\Locker: '@App\Adapter\RedisAdapter'
+    App\UseCase\RateLimiter: '@App\Adapter\RedisAdapter'
+
+    App\Adapter\Broker:
+        arguments: ['%env(BROKER_URL)%']
+    App\UseCase\Publisher: '@App\Adapter\Broker'
+
+    App\Adapter\HttpPaymentGateway:
+        arguments: ['%env(PAYMENT_GATEWAY_URL)%']
+    App\UseCase\PaymentGateway: '@App\Adapter\HttpPaymentGateway'
+
+    # --- platform ---
+    App\Platform\SystemClock: ~
+    App\UseCase\Clock: '@App\Platform\SystemClock'
+    App\Platform\UuidGenerator: ~
+    App\UseCase\IdGenerator: '@App\Platform\UuidGenerator'
+    App\Platform\BcryptHasher: ~
+    App\UseCase\PasswordHasher: '@App\Platform\BcryptHasher'
+
+    App\Platform\JwtTokenService:
+        arguments:
+            $secret: '%env(JWT_SECRET)%'
+            $accessTtl: '%env(int:ACCESS_TOKEN_TTL_SECONDS)%'
+            $refreshTtl: '%env(int:REFRESH_TOKEN_TTL_SECONDS)%'
+            $store: '@App\Adapter\RedisAdapter'
+            $ids: '@App\Platform\UuidGenerator'
+            $clock: '@App\Platform\SystemClock'
+    App\UseCase\TokenService: '@App\Platform\JwtTokenService'
+
+    # --- repositories (ports -> DBAL adapters) ---
+    App\Adapter\DbalUserRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\UserRepository: '@App\Adapter\DbalUserRepository'
+    App\Adapter\DbalEventRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\EventRepository: '@App\Adapter\DbalEventRepository'
+    App\Adapter\DbalSectorRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\SectorRepository: '@App\Adapter\DbalSectorRepository'
+    App\Adapter\DbalQueueRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\QueueRepository: '@App\Adapter\DbalQueueRepository'
+    App\Adapter\DbalReservationRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\ReservationRepository: '@App\Adapter\DbalReservationRepository'
+    App\Adapter\DbalOrderRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\OrderRepository: '@App\Adapter\DbalOrderRepository'
+    App\Adapter\DbalPaymentRepository: { arguments: ['@Doctrine\DBAL\Connection'] }
+    App\UseCase\PaymentRepository: '@App\Adapter\DbalPaymentRepository'
+
+    # --- use cases ---
+    App\UseCase\AuthService:
+        arguments: ['@App\UseCase\UserRepository', '@App\UseCase\PasswordHasher', '@App\UseCase\TokenService']
+    App\UseCase\EventService:
+        arguments: ['@App\UseCase\EventRepository', '@App\UseCase\SectorRepository']
+    App\UseCase\QueueService:
+        arguments:
+            $queue: '@App\UseCase\QueueRepository'
+            $events: '@App\UseCase\EventRepository'
+            $limiter: '@App\UseCase\RateLimiter'
+            $clock: '@App\UseCase\Clock'
+            $ids: '@App\UseCase\IdGenerator'
+            $admitBatch: '%env(int:QUEUE_ADMIT_BATCH)%'
+    App\UseCase\AdmissionChecker: '@App\UseCase\QueueService'
+    App\UseCase\ReservationService:
+        arguments:
+            $reservations: '@App\UseCase\ReservationRepository'
+            $sectors: '@App\UseCase\SectorRepository'
+            $locker: '@App\UseCase\Locker'
+            $admission: '@App\UseCase\AdmissionChecker'
+            $clock: '@App\UseCase\Clock'
+            $ids: '@App\UseCase\IdGenerator'
+            $ttlSeconds: '%env(int:RESERVATION_TTL_SECONDS)%'
+    App\UseCase\OrderService:
+        arguments: ['@App\UseCase\OrderRepository', '@App\UseCase\ReservationRepository', '@App\UseCase\SectorRepository', '@App\UseCase\Publisher', '@App\UseCase\IdGenerator']
+    App\UseCase\PaymentService:
+        arguments: ['@App\UseCase\OrderRepository', '@App\UseCase\ReservationRepository', '@App\UseCase\PaymentRepository', '@App\UseCase\PaymentGateway', '@App\UseCase\IdGenerator']
