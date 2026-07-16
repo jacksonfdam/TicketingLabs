@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up down logs ps restart env contract-lint contract-test db-shell load clean
+.PHONY: help up down logs ps restart env contract-lint contract-test db-shell load certs clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -41,6 +41,9 @@ load: ## Reset stock and run the k6 overselling stampede against the active back
 		-c "UPDATE sectors SET available_inventory = total_inventory; DELETE FROM orders; DELETE FROM reservations; DELETE FROM queue_tokens;"
 	docker run --rm --network ticketing-labs_default -v "$(PWD)/infra/load":/s \
 		-e TARGET=http://backend:8080 grafana/k6 run /s/reserve-stampede.js
+
+certs: ## Generate local dev TLS certs for the gateway<->backend mTLS example
+	bash infra/tls/gen-certs.sh
 
 clean: ## Stop everything and remove volumes (destroys local data)
 	$(COMPOSE) down -v

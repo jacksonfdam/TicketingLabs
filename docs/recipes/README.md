@@ -26,8 +26,12 @@ Every one is reproducible from a fresh clone. New recipes follow [TEMPLATE.md](T
 
 ## Security
 
+- [Security in every layer](security-layers.md) — the section-8 checklist mapped to code,
+  plus the encryption-at-rest strategy.
 - [JWT access tokens with refresh rotation](jwt-refresh-rotation.md) — short access
   tokens, revoke-on-use refresh tokens, theft detection.
+- [Mutual TLS between the gateway and the backend](mtls-gateway-backend.md) — neither side
+  trusts the network; both verify certificates.
 - [Rate limiting (two layers)](rate-limiting.md) — the edge protects the system, the app
   protects a resource.
 
