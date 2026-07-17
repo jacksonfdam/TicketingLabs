@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.ticketinglabs.client.config.AppConfig
+import com.ticketinglabs.client.data.cache.CachingEventRepository
 import com.ticketinglabs.client.data.health.HttpReachabilityChecker
 import com.ticketinglabs.client.presentation.ConnectivityViewModel
 import com.ticketinglabs.client.ui.components.ConnectivityBanner
@@ -56,7 +57,7 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
     AppTheme(onThemeChanged) {
         val scope = rememberCoroutineScope()
 
-        val eventRepo = remember { DemoEventRepository() }
+        val eventRepo = remember { CachingEventRepository(DemoEventRepository()) }
         val queueRepo = remember { DemoQueueRepository() }
         val reservationRepo = remember { DemoReservationRepository() }
         val orderRepo = remember { DemoOrderRepository() }
@@ -83,9 +84,11 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
         val reservationState by reservationVm.state.collectAsState()
         val orderState by orderVm.state.collectAsState()
 
-        // Drive the hold countdown once a reservation is held.
+        // Drive the hold countdown once a reservation is held; the hold changed availability,
+        // so drop the cached events/detail (they refetch on next view).
         LaunchedEffect(reservationState) {
             if (reservationState is UiState.Success) {
+                eventRepo.invalidate()
                 remainingMs = 120_000L
                 while (remainingMs > 0) {
                     delay(1_000)
