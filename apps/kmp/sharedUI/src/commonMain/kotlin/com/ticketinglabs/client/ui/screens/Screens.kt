@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -49,9 +51,23 @@ fun ScreenScaffold(title: String, content: @Composable () -> Unit) {
     }
 }
 
-/** 1. Events list. */
+/**
+ * 1. Events list. The success case is a [LazyColumn] so only visible cards compose — a long
+ * catalogue does not render off-screen rows. Success implies a non-empty list (an empty page
+ * is [UiState.Empty]); loading/empty/error/timeout render under the plain scaffold.
+ */
 @Composable
 fun EventsScreen(state: UiState<List<Event>>, onOpen: (Event) -> Unit, onRetry: () -> Unit) {
+    if (state is UiState.Success) {
+        LazyColumn(
+            Modifier.fillMaxSize().padding(Tokens.spaceXl),
+            verticalArrangement = Arrangement.spacedBy(Tokens.spaceMd),
+        ) {
+            item { ScreenTitle("Events") }
+            items(state.data, key = { it.id.value }) { EventCard(it, onOpen) }
+        }
+        return
+    }
     ScreenScaffold("Events") {
         UiStateContent(state, onRetry = onRetry, emptyText = "No events on sale.") { events ->
             Column(verticalArrangement = Arrangement.spacedBy(Tokens.spaceMd)) {
