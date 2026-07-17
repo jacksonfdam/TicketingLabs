@@ -4,7 +4,7 @@ import { recipes } from '@/lib/content';
 
 export const metadata: Metadata = {
   title: 'Recipes · Ticketing Labs',
-  description: 'Fourteen short explanations of the concepts behind the system, each pointing at the real code that implements it.',
+  description: 'Short explanations of the concepts behind the system and its three mobile clients, each pointing at the real code that implements it.',
 };
 
 // Curated order that follows the build story; any recipe not listed falls to the end.
@@ -23,6 +23,11 @@ const ORDER = [
   'observability-red-metrics',
   'mtls-gateway-backend',
   'security-layers',
+  // Client recipes — the same concept across all three mobile apps.
+  'client-injected-base-url',
+  'client-explicit-async-state',
+  'client-defensive-deserialization',
+  'client-idempotency-and-payment',
 ];
 
 function firstParagraph(md: string): string {
@@ -49,8 +54,9 @@ export default function RecipesPage() {
       <p className="text-sm font-semibold uppercase tracking-widest text-[var(--accent)]">Recipes</p>
       <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">How each piece works</h1>
       <p className="mt-4 max-w-2xl text-lg text-[#d7dbe4]">
-        One concept per recipe, in the order the system was built. Each explains the problem, the approach, and
-        the trade-offs, and links to the real code that does it.
+        One concept per recipe. Each explains the problem, the approach, and the trade-offs, and links to the
+        real code that does it. The backend recipes come first; the <code>client-</code> ones then take a single
+        concept across all three mobile apps side by side.
       </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">

@@ -47,6 +47,21 @@ Every one is reproducible from a fresh clone. New recipes follow [TEMPLATE.md](T
 - [Distributed tracing with OpenTelemetry](distributed-tracing-go.md) — the inside of a
   request: `POST` → lock → decrement.
 
+## Clients (mobile) — one concept, three platforms
+
+Each takes a single client concern and shows it in Kotlin Multiplatform, Flutter and React
+Native side by side, with real file paths.
+
+- [The injected base URL (and a reachability probe that can't hang)](client-injected-base-url.md)
+  — one place to configure the gateway; a bounded `/health` check that resolves to online/offline.
+- [Async as an explicit state, errors as a typed taxonomy](client-explicit-async-state.md) —
+  `UiState` and `AppError` modelled once so the UI is a pure function of state.
+- [Defensive deserialization](client-defensive-deserialization.md) — parsing is validation;
+  a bad payload becomes one `MalformedResponse`, never a crash.
+- [Idempotency, the double tap, and the unknown payment](client-idempotency-and-payment.md) —
+  one idempotency key per intent, an in-flight guard, and reconcile-by-polling so a timed-out
+  charge is neither double-billed nor falsely failed.
+
 ## Per-backend
 
 Each backend's own README is a "recipe" for that stack — how it expresses the same
