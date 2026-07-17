@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up down logs ps restart env contract-lint contract-test contract-sync db-shell load certs clean
+.PHONY: help up down logs ps restart env contract-lint contract-test contract-sync tunnel db-shell load certs clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -36,6 +36,11 @@ contract-test: ## Run contract tests against $$TARGET_URL (skips if no backend)
 contract-sync: ## Refresh the client-lab contract mirror (shared/contract) from the source
 	cp contract/openapi.yaml shared/contract/openapi.yaml
 	@diff -q contract/openapi.yaml shared/contract/openapi.yaml >/dev/null && echo "shared/contract/openapi.yaml in sync"
+
+tunnel: ## Expose the gateway (port 80) over an external HTTPS URL for device testing (ngrok)
+	@echo "Tunnelling the gateway (:80). Point the web and mobile clients at the https URL below."
+	@echo "Cloudflare alternative: cloudflared tunnel --url http://localhost:80"
+	ngrok http 80
 
 db-shell: ## Open a psql shell on the running Postgres
 	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-ticketing}
