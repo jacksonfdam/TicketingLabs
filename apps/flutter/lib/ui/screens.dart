@@ -14,23 +14,27 @@ Widget _scaffold(String title, Widget body) => Scaffold(
       body: SingleChildScrollView(padding: const EdgeInsets.all(Tokens.spaceXl), child: body),
     );
 
-/// 1. Events list.
+/// 1. Events list. The success case is a lazy `ListView.builder`, so only visible cards
+/// build — a long catalogue does not render off-screen rows.
 class EventsScreen extends StatelessWidget {
   final UiState<List<Event>> state;
   final void Function(Event) onOpen;
   final VoidCallback onRetry;
   const EventsScreen({required this.state, required this.onOpen, required this.onRetry, super.key});
   @override
-  Widget build(BuildContext context) => _scaffold(
-        'Events',
-        UiStateView<List<Event>>(
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Events')),
+        body: UiStateView<List<Event>>(
           state,
           onRetry: onRetry,
           emptyText: 'No events on sale.',
-          onSuccess: (events) => Column(
-            children: [
-              for (final e in events) ...[EventCard(e, onOpen: () => onOpen(e)), const SizedBox(height: Tokens.spaceMd)],
-            ],
+          onSuccess: (events) => ListView.builder(
+            padding: const EdgeInsets.all(Tokens.spaceXl),
+            itemCount: events.length,
+            itemBuilder: (_, i) => Padding(
+              padding: const EdgeInsets.only(bottom: Tokens.spaceMd),
+              child: EventCard(events[i], onOpen: () => onOpen(events[i])),
+            ),
           ),
         ),
       );
