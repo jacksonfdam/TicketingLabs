@@ -92,8 +92,8 @@ export default function Home() {
             and actually learn Flutter and React Native rather than nod along in meetings.
           </p>
           <p>
-            I&apos;ve never held a grudge against a language, framework or platform. (Okay: ASP.) I had a lot of
-            fun building this.
+            I&apos;ve never held a grudge against a language, framework or platform. (Okay: ASP.)
+            I had a lot of fun building this.
           </p>
         </div>
         <p className="mt-4 text-sm">
