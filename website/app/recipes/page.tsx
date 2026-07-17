@@ -23,6 +23,7 @@ const ORDER = [
   'observability-red-metrics',
   'mtls-gateway-backend',
   'security-layers',
+  'expose-with-a-tunnel',
   // Client recipes — the same concept across all three mobile apps.
   'client-injected-base-url',
   'client-explicit-async-state',

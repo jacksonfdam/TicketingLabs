@@ -106,6 +106,11 @@ export default function ClientsPage() {
             <li>Flutter — <code>lib/config/app_config.dart</code> (or <code>--dart-define=BASE_URL</code>)</li>
             <li>React Native — <code>src/config/appConfig.ts</code> (or <code>EXPO_PUBLIC_BASE_URL</code>)</li>
           </ul>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            For real devices, front the gateway with a tunnel (<code>make tunnel</code> / ngrok, or
+            Cloudflare Tunnel) and use the external HTTPS URL — never a local IP. See{' '}
+            <Link href="/recipes/expose-with-a-tunnel">the tunnel recipe</Link>.
+          </p>
         </div>
       </div>
 

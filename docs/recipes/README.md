@@ -52,6 +52,10 @@ Every one is reproducible from a fresh clone. New recipes follow [TEMPLATE.md](T
 Each takes a single client concern and shows it in Kotlin Multiplatform, Flutter and React
 Native side by side, with real file paths.
 
+- [Test against an external HTTPS URL with a tunnel](expose-with-a-tunnel.md) — bring up the
+  infra, front the gateway with ngrok or Cloudflare Tunnel, and point every client (web and
+  mobile) at the tunnel URL instead of a local IP.
+
 - [The injected base URL (and a reachability probe that can't hang)](client-injected-base-url.md)
   — one place to configure the gateway; a bounded `/health` check that resolves to online/offline.
 - [Async as an explicit state, errors as a typed taxonomy](client-explicit-async-state.md) —
