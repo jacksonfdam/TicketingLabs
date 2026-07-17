@@ -87,3 +87,11 @@ export interface Order {
 }
 
 export const isSettled = (o: Order): boolean => o.status !== 'pending';
+
+/** A pair of tokens from the auth endpoints. Access token on every request; refresh token
+ * long-lived, rotated on use, and kept in the platform secure store. */
+export interface TokenPair {
+  readonly accessToken: string;
+  readonly refreshToken: string;
+  readonly expiresInSeconds: number;
+}

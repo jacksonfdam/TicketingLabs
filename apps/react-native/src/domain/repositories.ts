@@ -2,7 +2,7 @@
 // depend on these interfaces, never on the HTTP client.
 
 import { Outcome } from '../core/core';
-import { EventDetail, EventPage, Order, QueueToken, Reservation } from './models';
+import { EventDetail, EventPage, Order, QueueToken, Reservation, TokenPair } from './models';
 
 export interface EventRepository {
   listEvents(cursor?: string, limit?: number): Promise<Outcome<EventPage>>;
@@ -29,4 +29,20 @@ export interface OrderRepository {
 /** Produces client-side idempotency keys. A port so tests inject a deterministic sequence. */
 export interface IdempotencyKeyFactory {
   newKey(): string;
+}
+
+/** Authenticates and rotates tokens. Login proves identity with credentials; refresh proves
+ * it with the refresh token itself. */
+export interface AuthRepository {
+  login(email: string, password: string): Promise<Outcome<TokenPair>>;
+  /** Exchanges the refresh token for a new, rotated pair. A failure means the session is over. */
+  refresh(refreshToken: string): Promise<Outcome<TokenPair>>;
+}
+
+/** Persists the token pair: access token in memory, refresh token in the platform secure
+ * store. InMemoryTokenStore is the test/demo implementation. */
+export interface TokenStore {
+  current(): TokenPair | null;
+  save(tokens: TokenPair): void;
+  clear(): void;
 }
