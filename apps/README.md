@@ -1,23 +1,36 @@
 # /apps — the three clients
 
-The same ticketing client, built three times, so you can compare how each platform
-solves the same problems. Same contract, same seven-screen flow, same states. From the
-user's side they are indistinguishable. From the developer's side, that is the exhibit.
+The same ticketing client, built three times, so you can compare how each platform solves
+the same problems. Same contract, same seven-screen flow, same states. From the user's side
+they are indistinguishable. From the developer's side, that is the exhibit.
 
 | App | Stack | Status |
 |---|---|---|
-| [`kmp/`](kmp/) | Kotlin Multiplatform + Compose Multiplatform | reference app — core + tests done, verified; UI next |
-| [`flutter/`](flutter/) | Flutter + Dart | skeleton only |
-| [`react-native/`](react-native/) | Expo (managed), New Architecture | skeleton only |
+| [`kmp/`](kmp/README.md) | Kotlin Multiplatform + Compose Multiplatform | built, verified (iOS/Android compile, 35 host tests, Android APK) |
+| [`flutter/`](flutter/README.md) | Flutter + Dart | built, verified (analyze clean, 23 tests, web build) |
+| [`react-native/`](react-native/README.md) | Expo, New Architecture | built, verified (typecheck clean, 19 tests) |
 
-The suggested build order (from the master spec) is: shared assets → one reference app
-end to end → error/state coverage → payment resilience → design system + previews → the
-other two apps → docs and recipes. The shared assets are done. KMP is the reference app;
-its framework-free core (result type, error taxonomy, state model, domain, ports, first
-use cases) is implemented and verified — see [`kmp/README.md`](kmp/README.md) for exactly
-what is verified and what is pending. The Compose UI and data adapter are next.
+Each app's own README has the specifics. In short:
 
-Each app is blind to the backend. It receives a base URL and consumes
+**How to run** — see the "Run" section of each app's README:
+[kmp](kmp/README.md) · [flutter](flutter/README.md) · [react-native](react-native/README.md).
+
+**Where to set the endpoint** — one place per app, all pointing at the API Gateway
+(`https://localhost/api` by default; on an Android emulator use `https://10.0.2.2/api`):
+
+| App | Configure at |
+|---|---|
+| KMP | `sharedUI/.../config/AppConfig.kt` (`DEFAULT_BASE_URL`) |
+| Flutter | `lib/config/app_config.dart` (or `--dart-define=BASE_URL=...`) |
+| React Native | `src/config/appConfig.ts` (or `EXPO_PUBLIC_BASE_URL=...`) |
+
+**Offline-first, no infinite loading** — all three behave the same way: on start (and on
+Retry) a bounded reachability probe hits `{baseUrl}/health` with a short timeout and resolves
+to online/offline — it never hangs. A banner surfaces server status; the flow renders from
+local state and stays usable offline. Every network call carries a timeout, so each async
+state resolves into Success / Empty / Error / Timeout — never an endless spinner.
+
+Each app is blind to the backend: it receives a base URL and consumes
 [`/shared/contract`](../shared/contract/). It shares [tokens](../shared/tokens/),
-[scenarios](../shared/scenarios/) and [copy](../shared/copy/) with its siblings and
-shares no source code with them. See [`docs/client-architecture.md`](../docs/client-architecture.md).
+[scenarios](../shared/scenarios/) and [copy](../shared/copy/) with its siblings and shares no
+source code with them. See [`docs/client-architecture.md`](../docs/client-architecture.md).
