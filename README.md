@@ -144,11 +144,13 @@ docs/         architecture.md, domain-model.md, client-architecture.md, adr/, re
 ## Why I built this
 
 This lab is a workout, not a product. Before moving to Sweden I worked as a mobile developer
-— native Android and iOS — and also fullstack (PHP, Node) and devops/SRE. So it exists to
-keep those muscles honest: to try languages and frameworks I don't reach for daily (Go),
+— native Android and iOS — and also fullstack (PHP, Node) and devops/SRE. 
+So it exists to keep those muscles honest: to try languages and frameworks I don't reach for daily (Go),
 sharpen my Python, and actually learn Flutter and React Native rather than nod along in
-meetings. I've never held a grudge against a language, framework or platform. (Okay: ASP.) I
-had a lot of fun building this.
+meetings. 
+I've never held a grudge against a language, framework or platform. (Okay: ASP.) 
+
+I had a lot of fun building this.
 
 Jackson Mafra — [linkedin.com/in/jacksonfdam](https://www.linkedin.com/in/jacksonfdam/)
 
