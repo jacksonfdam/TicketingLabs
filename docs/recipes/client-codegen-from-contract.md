@@ -47,10 +47,27 @@ type-checks the boundary; it does not replace the zero-trust parse.
 **Kotlin Multiplatform** and **Flutter** reach the same place with a different tool: the
 [OpenAPI Generator](https://openapi-generator.tech) emits model classes — `@Serializable`
 Kotlin data classes for KMP, `json_serializable` classes for Flutter — from the same
-`openapi.yaml`. The generated models feed the same DTO→domain mappers; the domain layer and
-the HTTP executor stay hand-written, because that is where the app's guarantees live. The
-generator is model-only on purpose: a generated *client* would drag in its own HTTP stack and
-its own idea of error handling, and this lab keeps both.
+`openapi.yaml`. Generate models only (`--global-property models`); a generated *client* would
+drag in its own HTTP stack and error handling, and this lab keeps its own. Run it from the jar
+(the npm wrapper is broken on Node 22):
+
+```bash
+java -jar openapi-generator-cli.jar generate \
+  -i shared/contract/openapi.yaml -g kotlin --global-property models \
+  --additional-properties=serializationLibrary=kotlinx_serialization,packageName=com.ticketinglabs.client.contract \
+  -o apps/kmp/sharedUI/build/generated/contract
+# Flutter: -g dart  (or dart-dio), -o apps/flutter/lib/generated
+```
+
+One real gotcha, learned the hard way: the default `kotlin` generator maps `format: uuid` to
+`java.util.UUID` and `date-time` to `java.time.OffsetDateTime` — JVM-only types that will not
+compile in `commonMain`. For a multiplatform target you must remap them to `kotlin.String`
+(and parse in the mapper) via `--type-mappings`, or accept `kotlinx-datetime`. That friction is
+exactly why the two apps here keep their hand-written, unit-tested DTO→domain mappers as the
+runtime boundary and treat the generated models as the contract mirror to adopt deliberately —
+rather than swap a tested, platform-clean data layer for generated code with type caveats.
+React Native is the wired example because `openapi-typescript` emits types with none of this
+runtime baggage.
 
 ## Comparison
 

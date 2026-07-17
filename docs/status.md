@@ -107,9 +107,12 @@ demo, with the platform secure store (Keychain / Keystore / expo-secure-store) d
 behind the same port. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
 server state is cached with invalidation on reservation (a TTL decorator on KMP/Flutter,
 TanStack Query on RN). Certificate/public-key pinning is documented per platform with the
-dev bypass (a production posture, off in the tunnel/localhost dev flow). Extending contract
-codegen from React Native to KMP and Flutter is the last remaining item. The cross-platform
-recipes are authored (see `docs/recipes`).
+dev bypass (a production posture, off in the tunnel/localhost dev flow). Contract codegen is
+wired end-to-end in React Native (`openapi-typescript`, drift-proof enums); for KMP and Flutter
+the OpenAPI Generator approach is documented (with the JVM-type caveat) rather than wired,
+deliberately — their hand-written, unit-tested defensive mappers stay the runtime boundary
+instead of being swapped for generated runtime models with platform-type friction. The
+cross-platform recipes are authored (see `docs/recipes`).
 
 ## Outstanding (all non-security, scoped as future work)
 
