@@ -28,6 +28,9 @@ const ORDER = [
   'client-explicit-async-state',
   'client-defensive-deserialization',
   'client-idempotency-and-payment',
+  'client-codegen-from-contract',
+  'client-component-previews',
+  'client-atomic-design',
 ];
 
 function firstParagraph(md: string): string {

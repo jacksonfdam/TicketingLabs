@@ -61,6 +61,12 @@ Native side by side, with real file paths.
 - [Idempotency, the double tap, and the unknown payment](client-idempotency-and-payment.md) —
   one idempotency key per intent, an in-flight guard, and reconcile-by-polling so a timed-out
   charge is neither double-billed nor falsely failed.
+- [Generating wire types from the contract](client-codegen-from-contract.md) — `openapi-typescript`
+  wired in React Native (drift-proof enums), and the OpenAPI Generator approach for KMP/Flutter.
+- [A component and all its states, in isolation](client-component-previews.md) — `@Preview`
+  and on-device galleries so the error state has a front door.
+- [Atomic Design on the Order Status screen](client-atomic-design.md) — atoms → organisms →
+  screen, state in and events up, taken apart across the three apps.
 
 ## Per-backend
 
