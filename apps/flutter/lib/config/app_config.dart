@@ -3,9 +3,11 @@
 /// The app is blind to which backend answers; it only knows this base URL (the API
 /// Gateway). Override [baseUrl] at build time without editing code:
 ///
-///   flutter run --dart-define=BASE_URL=https://10.0.2.2/api
+///   flutter run --dart-define=BASE_URL=https://<subdomain>.ngrok-free.app/api
 ///
-/// On an Android emulator the host machine is `10.0.2.2`, not `localhost`.
+/// For real devices, prefer an external HTTPS tunnel over a local IP: run `make tunnel` and
+/// pass its URL. See docs/recipes/expose-with-a-tunnel.md. (Local run: `https://localhost/api`;
+/// Android emulator: `https://10.0.2.2/api`; a physical phone reaches neither.)
 library;
 
 class AppConfig {

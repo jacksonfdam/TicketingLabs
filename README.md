@@ -99,6 +99,11 @@ is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 
 Demo credentials (seeded): `buyer@ticketing.local` / `password123`.
 
+To test from another device (a real phone, an emulator), expose the gateway over an external
+HTTPS URL instead of a local IP: `make tunnel` (ngrok) or `cloudflared tunnel --url
+http://localhost:80`, then point the web and mobile clients at `https://<tunnel-host>/api`. See
+[the tunnel recipe](docs/recipes/expose-with-a-tunnel.md).
+
 Switch the active backend by editing one line in `.env` — `COMPOSE_PROFILES` is one of
 `go`, `fastapi`, `nest`, `express`, `laravel`, `symfony`, `phalcon` — and running
 `make up` again. The frontend, gateway, and contract do not change. See

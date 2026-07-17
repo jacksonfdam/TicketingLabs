@@ -15,14 +15,19 @@ Each app's own README has the specifics. In short:
 **How to run** — see the "Run" section of each app's README:
 [kmp](kmp/README.md) · [flutter](flutter/README.md) · [react-native](react-native/README.md).
 
-**Where to set the endpoint** — one place per app, all pointing at the API Gateway
-(`https://localhost/api` by default; on an Android emulator use `https://10.0.2.2/api`):
+**Where to set the endpoint** — one place per app, all pointing at the API Gateway:
 
 | App | Configure at |
 |---|---|
 | KMP | `sharedUI/.../config/AppConfig.kt` (`DEFAULT_BASE_URL`) |
 | Flutter | `lib/config/app_config.dart` (or `--dart-define=BASE_URL=...`) |
 | React Native | `src/config/appConfig.ts` (or `EXPO_PUBLIC_BASE_URL=...`) |
+
+Prefer an **external HTTPS tunnel** over a local IP so any device (real phone included) can
+reach the gateway: `make up`, then `make tunnel` (ngrok) or `cloudflared tunnel --url
+http://localhost:80`, and point each client at `https://<tunnel-host>/api`. Never consume the
+local IP. See [the tunnel recipe](../docs/recipes/expose-with-a-tunnel.md). (Bare fallbacks:
+`https://localhost/api`, or `https://10.0.2.2/api` on an Android emulator.)
 
 **Offline-first, no infinite loading** — all three behave the same way: on start (and on
 Retry) a bounded reachability probe hits `{baseUrl}/health` with a short timeout and resolves
