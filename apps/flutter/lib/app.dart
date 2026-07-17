@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/core.dart';
+import 'data/cache.dart';
 import 'demo/demo.dart';
 import 'domain/models.dart';
 import 'domain/usecases.dart';
@@ -23,7 +24,7 @@ class FlowApp extends StatefulWidget {
 }
 
 class _FlowAppState extends State<FlowApp> {
-  final _eventRepo = DemoEventRepository();
+  final _eventRepo = CachingEventRepository(DemoEventRepository());
   final _queueRepo = DemoQueueRepository();
   final _reservationRepo = DemoReservationRepository();
   final _orderRepo = DemoOrderRepository();
@@ -104,6 +105,7 @@ class _FlowAppState extends State<FlowApp> {
           detail: _detail!,
           onReserve: (sector, quantity) {
             _reservation.reserve(sector.id, quantity);
+            _eventRepo.invalidate(); // the hold changed availability; drop cached reads
             _startCountdown();
             setState(() => _screen = _Screen.reservation);
           },
