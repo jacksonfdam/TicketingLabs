@@ -2,7 +2,7 @@
 // UiStateView.
 
 import React, { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { FlatList, ScrollView, Text, View } from 'react-native';
 
 import { UiState } from '../core/core';
 import { Event, EventDetail, isHeld, isSoldOut, Order, QueueToken, Reservation, Sector } from '../domain/models';
@@ -29,11 +29,31 @@ function Screen({ title, children }: { title: string; children: React.ReactNode 
   );
 }
 
+// The success case is a FlatList, so only visible cards render — a long catalogue does not
+// build off-screen rows. (FlashList is a drop-in upgrade if the list ever gets huge.)
 export function EventsScreen({ state, onOpen, onRetry }: { state: UiState<Event[]>; onOpen: (e: Event) => void; onRetry: () => void }) {
+  if (state.kind === 'success') {
+    return (
+      <FlatList
+        style={{ flex: 1, backgroundColor: tokens.bg }}
+        contentContainerStyle={{ padding: tokens.spaceXl }}
+        data={state.data}
+        keyExtractor={(e) => e.id}
+        ListHeaderComponent={
+          <Text style={{ color: tokens.text, fontSize: 22, fontWeight: '700', marginBottom: tokens.spaceLg }}>Events</Text>
+        }
+        renderItem={({ item }) => (
+          <View style={{ marginBottom: tokens.spaceMd }}>
+            <EventCard event={item} onOpen={() => onOpen(item)} />
+          </View>
+        )}
+      />
+    );
+  }
   return (
     <Screen title="Events">
       <UiStateView state={state} onRetry={onRetry} emptyText="No events on sale.">
-        {(events) => <>{events.map((e) => <EventCard key={e.id} event={e} onOpen={() => onOpen(e)} />)}</>}
+        {() => null}
       </UiStateView>
     </Screen>
   );
