@@ -158,3 +158,12 @@ Order orderFromJson(dynamic json) {
     createdAt: _date(m, 'created_at'),
   );
 }
+
+TokenPair tokenPairFromJson(dynamic json) {
+  final m = _asMap(json);
+  return TokenPair(
+    accessToken: _str(m, 'access_token'),
+    refreshToken: _str(m, 'refresh_token'),
+    expiresInSeconds: _int(m, 'expires_in'),
+  );
+}

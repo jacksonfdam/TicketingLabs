@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import '../core/core.dart';
 import '../domain/models.dart';
 import '../domain/repositories.dart';
+import 'auth.dart';
 import 'mappers.dart';
 
 /// Everything the app knows about the backend: a base URL and timeouts. Nothing else.
@@ -66,7 +67,8 @@ Dio buildDio(ApiConfig config) {
 class ApiExecutor {
   final Dio _dio;
   final Logger _logger;
-  ApiExecutor(this._dio, {this._logger = const NoopLogger()});
+  final SessionManager? session;
+  ApiExecutor(this._dio, {this._logger = const NoopLogger(), this.session});
 
   Future<Outcome<T>> execute<T>({
     required String method,
@@ -77,16 +79,22 @@ class ApiExecutor {
     String? idempotencyKey,
     required T Function(dynamic json) parse,
   }) async {
+    Future<Response<dynamic>> send() {
+      final headers = <String, dynamic>{};
+      if (idempotencyKey != null) headers['Idempotency-Key'] = idempotencyKey;
+      final token = session?.accessToken();
+      if (token != null) headers['Authorization'] = 'Bearer $token';
+      return _dio.request(path, data: body, queryParameters: query,
+          options: Options(method: method, headers: headers.isEmpty ? null : headers));
+    }
+
     try {
-      final response = await _dio.request(
-        path,
-        data: body,
-        queryParameters: query,
-        options: Options(
-          method: method,
-          headers: idempotencyKey == null ? null : {'Idempotency-Key': idempotencyKey},
-        ),
-      );
+      var response = await send();
+      // Access token expired: refresh (with rotation) and retry once. A failed refresh signs
+      // the session out and the 401 flows on as Unauthorized.
+      if (response.statusCode == 401 && session != null && await session!.refresh()) {
+        response = await send();
+      }
       final requestId = response.headers.value('X-Request-Id');
       final status = response.statusCode ?? 0;
       if (status >= 200 && status < 300) {
@@ -190,4 +198,29 @@ class HttpOrderRepository implements OrderRepository {
   @override
   Future<Outcome<Order>> get(String id) =>
       _api.execute(method: 'GET', path: 'orders/$id', event: 'order.get', parse: orderFromJson);
+}
+
+/// Talks to `/auth/login` and `/auth/refresh`. Uses a plain executor with no session: login
+/// has no token yet, and refresh must not carry the expired access token or it would recurse.
+class HttpAuthRepository implements AuthRepository {
+  final ApiExecutor _api;
+  HttpAuthRepository(this._api);
+
+  @override
+  Future<Outcome<TokenPair>> login(String email, String password) => _api.execute(
+        method: 'POST',
+        path: 'auth/login',
+        event: 'auth.login',
+        body: {'email': email, 'password': password},
+        parse: tokenPairFromJson,
+      );
+
+  @override
+  Future<Outcome<TokenPair>> refresh(String refreshToken) => _api.execute(
+        method: 'POST',
+        path: 'auth/refresh',
+        event: 'auth.refresh',
+        body: {'refresh_token': refreshToken},
+        parse: tokenPairFromJson,
+      );
 }
