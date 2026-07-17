@@ -33,6 +33,7 @@ const ORDER = [
   'client-token-refresh-rotation',
   'client-component-previews',
   'client-atomic-design',
+  'client-list-performance',
 ];
 
 function firstParagraph(md: string): string {

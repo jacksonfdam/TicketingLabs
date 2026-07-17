@@ -73,6 +73,8 @@ Native side by side, with real file paths.
   and on-device galleries so the error state has a front door.
 - [Atomic Design on the Order Status screen](client-atomic-design.md) — atoms → organisms →
   screen, state in and events up, taken apart across the three apps.
+- [Lists that only render what's on screen](client-list-performance.md) — LazyColumn /
+  ListView.builder / FlatList, so a long catalogue never builds off-screen rows.
 
 ## Per-backend
 
