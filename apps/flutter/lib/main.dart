@@ -1,10 +1,15 @@
 /// Entry point. Hosts the seven-screen flow (against the in-memory demo backend) and the
-/// component gallery behind a bottom navigation bar.
+/// component gallery behind a bottom navigation bar, under an app-wide connectivity banner.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app.dart';
+import 'config/app_config.dart';
+import 'data/reachability.dart';
+import 'presentation/connectivity_cubit.dart';
+import 'ui/connectivity_banner.dart';
 import 'ui/gallery.dart';
 import 'ui/theme.dart';
 
@@ -29,11 +34,33 @@ class _Home extends StatefulWidget {
 
 class _HomeState extends State<_Home> {
   int _tab = 0;
+  late final ConnectivityCubit _connectivity =
+      ConnectivityCubit(DioReachabilityChecker(AppConfig.baseUrl, timeout: AppConfig.reachabilityTimeout));
+
+  @override
+  void dispose() {
+    _connectivity.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: IndexedStack(
-          index: _tab,
-          children: const [FlowApp(), GalleryScreen()],
+        body: Column(
+          children: [
+            SafeArea(
+              bottom: false,
+              child: BlocBuilder<ConnectivityCubit, Connectivity>(
+                bloc: _connectivity,
+                builder: (_, state) => ConnectivityBanner(state: state, onRetry: _connectivity.check),
+              ),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _tab,
+                children: const [FlowApp(), GalleryScreen()],
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _tab,
