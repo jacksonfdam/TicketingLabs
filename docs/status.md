@@ -104,8 +104,10 @@ Scoped, and stated plainly: React Native generates its wire DTO types from the c
 (`openapi-typescript`, with drift-proof enum maps); KMP and Flutter still hand-write DTOs (the
 OpenAPI Generator path is documented). Secure token storage uses an in-memory store in the
 demo, with the platform secure store (Keychain / Keystore / expo-secure-store) documented
-behind the same port. Certificate pinning, server-state caching and list-performance tuning
-are the remaining items. The cross-platform recipes are authored (see `docs/recipes`).
+behind the same port. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
+server state is cached with invalidation on reservation (a TTL decorator on KMP/Flutter,
+TanStack Query on RN). Certificate pinning, and extending contract codegen to KMP/Flutter, are
+the remaining items. The cross-platform recipes are authored (see `docs/recipes`).
 
 ## Outstanding (all non-security, scoped as future work)
 

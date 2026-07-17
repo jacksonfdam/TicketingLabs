@@ -34,6 +34,7 @@ const ORDER = [
   'client-component-previews',
   'client-atomic-design',
   'client-list-performance',
+  'client-server-state-cache',
 ];
 
 function firstParagraph(md: string): string {

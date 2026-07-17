@@ -75,6 +75,8 @@ Native side by side, with real file paths.
   screen, state in and events up, taken apart across the three apps.
 - [Lists that only render what's on screen](client-list-performance.md) — LazyColumn /
   ListView.builder / FlatList, so a long catalogue never builds off-screen rows.
+- [Caching server state, and invalidating it](client-server-state-cache.md) — a TTL read-through
+  cache (KMP/Flutter) or TanStack Query (RN), dropped on the reservation that changes availability.
 
 ## Per-backend
 
