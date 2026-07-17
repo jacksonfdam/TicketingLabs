@@ -145,14 +145,20 @@ docs/         architecture.md, domain-model.md, client-architecture.md, adr/, re
 
 ## Why I built this
 
-This lab is a workout, not a product. Before moving to Sweden I worked as a mobile developer
-— native Android and iOS — and also fullstack (PHP, Node) and devops/SRE. 
-So it exists to keep those muscles honest: to try languages and frameworks I don't reach for daily (Go),
-sharpen my Python, and actually learn Flutter and React Native rather than nod along in
-meetings. 
-I've never held a grudge against a language, framework or platform. (Okay: ASP.) 
+This lab is a workout, not a product, and it isn't here to show off. Before moving to Sweden I
+worked as a mobile developer — native Android and iOS — and also fullstack (PHP, Node) and
+devops/SRE, so it exists to keep those muscles honest: to try languages I don't reach for daily
+(Go), sharpen my Python, and actually learn Flutter and React Native rather than nod along in
+meetings.
 
-I had a lot of fun building this.
+I picked a problem of medium complexity on purpose. A flash sale makes you get correctness
+right from the database up and then defend it through the API, the gateway, and every client,
+so one thread — don't oversell — runs the whole length of the stack: concurrency, security, and
+how a web app and three mobile clients consume the exact same contract. I've never held a grudge
+against a language, framework or platform. (Okay: ASP.)
+
+I learned a great deal building it and I'm still learning. If any of it is useful to you, that's
+the point.
 
 Jackson Mafra — [linkedin.com/in/jacksonfdam](https://www.linkedin.com/in/jacksonfdam/)
 

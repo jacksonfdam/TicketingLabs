@@ -86,15 +86,19 @@ export default function Home() {
         <h2 className="text-xl font-bold">Why I built this</h2>
         <div className="mt-3 max-w-2xl space-y-3 text-[#d7dbe4]">
           <p>
-            This lab is a workout, not a product. Before moving to Sweden I worked as a mobile developer —
-            native Android and iOS — and also fullstack (PHP, Node) and devops/SRE. So it exists to keep those
-            muscles honest: to try languages and frameworks I don&apos;t reach for daily (Go), sharpen my Python,
-            and actually learn Flutter and React Native rather than nod along in meetings.
+            This lab is a workout, not a product, and it isn&apos;t here to show off. Before moving to Sweden I
+            worked as a mobile developer — native Android and iOS — and also fullstack (PHP, Node) and
+            devops/SRE, so it exists to keep those muscles honest: to try languages I don&apos;t reach for daily
+            (Go), sharpen my Python, and actually learn Flutter and React Native rather than nod along in meetings.
           </p>
           <p>
-            I&apos;ve never held a grudge against a language, framework or platform. (Okay: ASP.)
-            I had a lot of fun building this.
+            I picked a problem of medium complexity on purpose. A flash sale makes you get correctness right from
+            the database up and then defend it through the API, the gateway, and every client, so one thread —
+            don&apos;t oversell — runs the whole length of the stack: concurrency, security, and how a web app and
+            three mobile clients consume the exact same contract. I&apos;ve never held a grudge against a language,
+            framework or platform. (Okay: ASP.)
           </p>
+          <p>I learned a great deal building it and I&apos;m still learning. If any of it is useful to you, that&apos;s the point.</p>
         </div>
         <p className="mt-4 text-sm">
           <span className="text-[var(--muted)]">Jackson Mafra · </span>
