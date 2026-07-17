@@ -84,6 +84,26 @@ Nothing here is aspirational — each ✅ links to code or a recipe and was exer
 Foundation (contract, schema, infra) ✅ · reference backend ✅ · frontend ✅ · all seven
 backends ✅ · resilience + observability ✅ · load test + scale + k8s ✅ · recipes + ADRs ✅.
 
+## Client lab (mobile) — Definition of Done
+
+The three clients — Kotlin Multiplatform, Flutter, React Native — against the same contract.
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Identical seven-screen flow; base URL injected; no backend-specific code | ✅ | one flow per app; base URL in a single `AppConfig` per app |
+| Every async operation resolves into an explicit modelled state; no silent catches | ✅ | `Outcome`/`AppError` taxonomy + `UiState` in all three, unit-tested |
+| Offline-first: bounded reachability check, no infinite loading | ✅ | `ReachabilityChecker` + connectivity state; request timeouts throughout; tested in all three |
+| Payment matrix incl. unknown-outcome (no double-charge, no false failure) | ✅ | reconcile-and-poll use case + state holder; unit-tested (unknown → `PaymentUnknown`, same idempotency key) |
+| Every atom/molecule/organism has previews across its states | ✅ | `@Preview` + Gallery (KMP); gallery screens (Flutter, RN) |
+| Classes and non-trivial functions documented | ✅ | KDoc / dartdoc / TSDoc throughout |
+| Builds and tests verified | ✅ | KMP: iOS + Android compile, 35 host tests, Android APK · Flutter: analyze clean, 23 tests, web build · RN: typecheck clean, 19 tests |
+| Atomic Conventional Commits per platform | ✅ | `feat(kmp\|flutter\|react-native): …` history |
+
+Scoped, and stated plainly: models are hand-written per platform rather than generated from
+the contract (the codegen configs are described in `shared/contract`, not wired), and the
+cross-platform "recipe" write-ups (client spec §14) are not yet authored — the architecture
+doc, the state-machine diagrams and the per-app READMEs carry the explanations for now.
+
 ## Outstanding (all non-security, scoped as future work)
 
 - Individually load-test the remaining five backends (mechanism is identical; contract passes on all).

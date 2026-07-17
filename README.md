@@ -60,16 +60,17 @@ Native — so you can compare how each platform solves the same problems. Same c
 same seven-screen flow, same states, each app blind to the backend behind a single base
 URL. It is the mobile companion to the seven backends above.
 
-Current state: **shared assets done, KMP reference core in progress**. The single-sourced
-[`shared/`](shared/) assets are in place (contract mirror, design tokens, scenario list,
-error copy), the client architecture and state machines are documented, and the Kotlin
-Multiplatform reference app's framework-free core — result type, typed error taxonomy,
-state model, domain models, repository ports, and the first use cases (idempotent
-reservation, payment order create, order reconciler) — is implemented with a test suite,
-verified by compiling with `kotlinc` and exercising the logic on the JVM. The Compose UI,
-the HTTP data adapter, and the other two apps are next.
+All three are built, verified and offline-first, consuming the same OpenAPI contract:
 
-- [apps/README.md](apps/README.md) — the three clients and build order.
+- **KMP** — Compose Multiplatform, shared UI in `commonMain`, multiplatform ViewModels. iOS
+  and Android compile; 35 tests on the Android host; Android APK builds.
+- **Flutter** — Cubits + `dio`. `analyze` clean; 23 tests; web bundle builds.
+- **React Native** — Expo, zustand + TanStack Query + `ky`. `typecheck` clean; 19 tests.
+
+Each app checks server reachability with a bounded probe (so there is no infinite loading)
+and stays usable offline; the base URL is configured in one place per app.
+
+- [apps/README.md](apps/README.md) — the three clients, how to run each, and where to set the endpoint.
 - [shared/README.md](shared/README.md) — what is single-sourced and why.
 - [docs/client-architecture.md](docs/client-architecture.md) — the shared layering.
 - [docs/client-state-machines.md](docs/client-state-machines.md) — reservation + order, in Mermaid.
@@ -134,6 +135,17 @@ docs/         architecture.md, domain-model.md, client-architecture.md, adr/, re
   reservation/order state machines.
 - [docs/adr/](docs/adr/) — why things are the way they are.
 - [contract/openapi.yaml](contract/openapi.yaml) — the contract everything obeys.
+
+## Why I built this
+
+This lab is a workout, not a product. Before moving to Sweden I worked as a mobile developer
+— native Android and iOS — and also fullstack (PHP, Node) and devops/SRE. So it exists to
+keep those muscles honest: to try languages and frameworks I don't reach for daily (Go),
+sharpen my Python, and actually learn Flutter and React Native rather than nod along in
+meetings. I've never held a grudge against a language, framework or platform. (Okay: ASP.) I
+had a lot of fun building this.
+
+Jackson Mafra — [linkedin.com/in/jacksonfdam](https://www.linkedin.com/in/jacksonfdam/)
 
 ## License
 
