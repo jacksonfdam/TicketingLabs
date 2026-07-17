@@ -11,4 +11,5 @@ export type EventPageDto = components['schemas']['EventPage'];
 export type QueueTokenDto = components['schemas']['QueueToken'];
 export type ReservationDto = components['schemas']['Reservation'];
 export type OrderDto = components['schemas']['Order'];
+export type TokenPairDto = components['schemas']['TokenPair'];
 export type ErrorEnvelopeDto = components['schemas']['ErrorEnvelope'];

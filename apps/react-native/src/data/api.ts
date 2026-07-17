@@ -4,8 +4,9 @@
 import ky, { KyInstance, TimeoutError } from 'ky';
 
 import { AppError, appError, fail, Logger, noopLogger, ok, Outcome } from '../core/core';
-import { EventDetail, EventPage, Order, QueueToken, Reservation } from '../domain/models';
-import { EventRepository, OrderRepository, QueueRepository, ReservationRepository } from '../domain/repositories';
+import { EventDetail, EventPage, Order, QueueToken, Reservation, TokenPair } from '../domain/models';
+import { AuthRepository, EventRepository, OrderRepository, QueueRepository, ReservationRepository } from '../domain/repositories';
+import { SessionManager } from './auth';
 import {
   eventDetailFromJson,
   eventPageFromJson,
@@ -13,6 +14,7 @@ import {
   orderFromJson,
   queueTokenFromJson,
   reservationFromJson,
+  tokenPairFromJson,
 } from './mappers';
 
 /** Everything the app knows about the backend: a base URL and timeouts. Nothing else. */
@@ -65,7 +67,11 @@ export function buildClient(config: ApiConfig): KyInstance {
  * Timeout; any other transport failure becomes NetworkUnavailable.
  */
 export class ApiExecutor {
-  constructor(private readonly client: KyInstance, private readonly logger: Logger = noopLogger) {}
+  constructor(
+    private readonly client: KyInstance,
+    private readonly logger: Logger = noopLogger,
+    private readonly session?: SessionManager,
+  ) {}
 
   async execute<T>(opts: {
     method: 'get' | 'post' | 'delete';
@@ -76,13 +82,22 @@ export class ApiExecutor {
     idempotencyKey?: string;
     parse: (json: unknown) => T;
   }): Promise<Outcome<T>> {
+    // Recomputes headers each call so a retry after refresh carries the rotated token.
+    const send = () => {
+      const headers: Record<string, string> = {};
+      if (opts.idempotencyKey) headers['Idempotency-Key'] = opts.idempotencyKey;
+      const token = this.session?.accessToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return this.client(opts.path, { method: opts.method, searchParams: opts.searchParams, json: opts.json, headers });
+    };
+
     try {
-      const response = await this.client(opts.path, {
-        method: opts.method,
-        searchParams: opts.searchParams,
-        json: opts.json,
-        headers: opts.idempotencyKey ? { 'Idempotency-Key': opts.idempotencyKey } : undefined,
-      });
+      let response = await send();
+      // Access token expired: refresh (with rotation) and retry once. A failed refresh signs
+      // the session out and the 401 flows on as Unauthorized.
+      if (response.status === 401 && this.session && (await this.session.refresh())) {
+        response = await send();
+      }
       const requestId = response.headers.get('X-Request-Id') ?? undefined;
       if (response.ok) {
         try {
@@ -167,5 +182,17 @@ export class HttpOrderRepository implements OrderRepository {
   }
   get(id: string): Promise<Outcome<Order>> {
     return this.api.execute({ method: 'get', path: `orders/${id}`, event: 'order.get', parse: orderFromJson });
+  }
+}
+
+/** Talks to /auth/login and /auth/refresh. Uses a plain executor with no session: login has
+ * no token yet, and refresh must not carry the expired access token or it would recurse. */
+export class HttpAuthRepository implements AuthRepository {
+  constructor(private readonly api: ApiExecutor) {}
+  login(email: string, password: string): Promise<Outcome<TokenPair>> {
+    return this.api.execute({ method: 'post', path: 'auth/login', event: 'auth.login', json: { email, password }, parse: tokenPairFromJson });
+  }
+  refresh(refreshToken: string): Promise<Outcome<TokenPair>> {
+    return this.api.execute({ method: 'post', path: 'auth/refresh', event: 'auth.refresh', json: { refresh_token: refreshToken }, parse: tokenPairFromJson });
   }
 }

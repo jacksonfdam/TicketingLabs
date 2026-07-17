@@ -16,6 +16,7 @@ import {
   ReservationStatus,
   Sector,
   sector,
+  TokenPair,
 } from '../domain/models';
 import type { EventDto, OrderDto, QueueTokenDto, ReservationDto } from '../contract/dto';
 
@@ -149,5 +150,14 @@ export function orderFromJson(json: unknown): Order {
     amountCents: int(m, 'amount_cents'),
     status: mapEnum(ORDER_STATUS, str(m, 'status'), 'order status'),
     createdAt: date(m, 'created_at'),
+  };
+}
+
+export function tokenPairFromJson(json: unknown): TokenPair {
+  const m = asObject(json);
+  return {
+    accessToken: str(m, 'access_token'),
+    refreshToken: str(m, 'refresh_token'),
+    expiresInSeconds: int(m, 'expires_in'),
   };
 }
