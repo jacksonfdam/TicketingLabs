@@ -63,6 +63,8 @@ Native side by side, with real file paths.
   charge is neither double-billed nor falsely failed.
 - [Generating wire types from the contract](client-codegen-from-contract.md) — `openapi-typescript`
   wired in React Native (drift-proof enums), and the OpenAPI Generator approach for KMP/Flutter.
+- [Token storage and refresh rotation](client-token-refresh-rotation.md) — access token in
+  memory, refresh token rotated on use, single-flight refresh-on-401, global sign-out on failure.
 - [A component and all its states, in isolation](client-component-previews.md) — `@Preview`
   and on-device galleries so the error state has a front door.
 - [Atomic Design on the Order Status screen](client-atomic-design.md) — atoms → organisms →

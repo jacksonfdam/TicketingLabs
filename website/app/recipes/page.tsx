@@ -29,6 +29,7 @@ const ORDER = [
   'client-defensive-deserialization',
   'client-idempotency-and-payment',
   'client-codegen-from-contract',
+  'client-token-refresh-rotation',
   'client-component-previews',
   'client-atomic-design',
 ];
