@@ -17,6 +17,7 @@
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
     "jest": "^30.0.0",
+    "openapi-typescript": "^7.13.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -25,7 +26,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:contract": "openapi-typescript ../../shared/contract/openapi.yaml -o src/contract/schema.ts"
   },
   "jest": {
     "testEnvironment": "node",

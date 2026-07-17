@@ -17,6 +17,7 @@ import {
   Sector,
   sector,
 } from '../domain/models';
+import type { EventDto, OrderDto, QueueTokenDto, ReservationDto } from '../contract/dto';
 
 export class MappingError extends Error {}
 
@@ -62,15 +63,17 @@ function guarded<T>(build: () => T): T {
   }
 }
 
-const EVENT_STATUS: Record<string, EventStatus> = { draft: 'draft', on_sale: 'onSale', sold_out: 'soldOut', closed: 'closed' };
-const QUEUE_STATUS: Record<string, QueueStatus> = { waiting: 'waiting', admitted: 'admitted', expired: 'expired' };
-const RESERVATION_STATUS: Record<string, ReservationStatus> = { held: 'held', confirmed: 'confirmed', released: 'released', expired: 'expired' };
-const ORDER_STATUS: Record<string, OrderStatus> = { pending: 'pending', paid: 'paid', failed: 'failed', refunded: 'refunded' };
+// The enum maps are typed against the GENERATED contract unions (EventDto['status'], …). If
+// the contract ever adds or renames a status, these object literals stop being exhaustive and
+// the app fails to compile until the new case is handled. That is the payoff of the codegen.
+const EVENT_STATUS: Record<EventDto['status'], EventStatus> = { draft: 'draft', on_sale: 'onSale', sold_out: 'soldOut', closed: 'closed' };
+const QUEUE_STATUS: Record<QueueTokenDto['status'], QueueStatus> = { waiting: 'waiting', admitted: 'admitted', expired: 'expired' };
+const RESERVATION_STATUS: Record<ReservationDto['status'], ReservationStatus> = { held: 'held', confirmed: 'confirmed', released: 'released', expired: 'expired' };
+const ORDER_STATUS: Record<OrderDto['status'], OrderStatus> = { pending: 'pending', paid: 'paid', failed: 'failed', refunded: 'refunded' };
 
-function mapEnum<T>(table: Record<string, T>, raw: string, what: string): T {
-  const value = table[raw];
-  if (value === undefined) throw new MappingError(`unknown ${what} '${raw}'`);
-  return value;
+function mapEnum<K extends string, T>(table: Record<K, T>, raw: string, what: string): T {
+  if (raw in table) return table[raw as K];
+  throw new MappingError(`unknown ${what} '${raw}'`);
 }
 
 export function eventFromJson(json: unknown): Event {
