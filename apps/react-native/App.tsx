@@ -112,6 +112,9 @@ function Flow() {
           detail={data}
           onReserve={(sector, quantity) => {
             void deps.reservation.getState().reserve(sector.id, quantity);
+            // The hold changed availability; drop cached events/detail so they refetch.
+            void queryClient.invalidateQueries({ queryKey: ['events'] });
+            void queryClient.invalidateQueries({ queryKey: ['event'] });
             setScreen('reservation');
           }}
         />
