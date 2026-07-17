@@ -77,6 +77,8 @@ Native side by side, with real file paths.
   ListView.builder / FlatList, so a long catalogue never builds off-screen rows.
 - [Caching server state, and invalidating it](client-server-state-cache.md) — a TTL read-through
   cache (KMP/Flutter) or TanStack Query (RN), dropped on the reservation that changes availability.
+- [Certificate (public-key) pinning](client-certificate-pinning.md) — pin the gateway's key per
+  platform, with the dev bypass so tunnels and localhost still connect.
 
 ## Per-backend
 

@@ -35,6 +35,7 @@ const ORDER = [
   'client-atomic-design',
   'client-list-performance',
   'client-server-state-cache',
+  'client-certificate-pinning',
 ];
 
 function firstParagraph(md: string): string {

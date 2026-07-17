@@ -106,8 +106,10 @@ OpenAPI Generator path is documented). Secure token storage uses an in-memory st
 demo, with the platform secure store (Keychain / Keystore / expo-secure-store) documented
 behind the same port. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
 server state is cached with invalidation on reservation (a TTL decorator on KMP/Flutter,
-TanStack Query on RN). Certificate pinning, and extending contract codegen to KMP/Flutter, are
-the remaining items. The cross-platform recipes are authored (see `docs/recipes`).
+TanStack Query on RN). Certificate/public-key pinning is documented per platform with the
+dev bypass (a production posture, off in the tunnel/localhost dev flow). Extending contract
+codegen from React Native to KMP and Flutter is the last remaining item. The cross-platform
+recipes are authored (see `docs/recipes`).
 
 ## Outstanding (all non-security, scoped as future work)
 
