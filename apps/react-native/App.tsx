@@ -28,6 +28,10 @@ import {
   WaitingRoomScreen,
 } from './src/ui/screens';
 import { tokens } from './src/ui/theme';
+import { AppConfig } from './src/config/appConfig';
+import { KyReachabilityChecker } from './src/data/reachability';
+import { createConnectivityStore } from './src/presentation/connectivityStore';
+import { ConnectivityBanner } from './src/ui/ConnectivityBanner';
 
 type FlowScreen = 'events' | 'detail' | 'waiting' | 'sectors' | 'reservation' | 'order';
 
@@ -155,10 +159,19 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
 
 export default function App() {
   const [tab, setTab] = useState(0);
+  const connectivity = useMemo(
+    () => createConnectivityStore(new KyReachabilityChecker(AppConfig.baseUrl, AppConfig.reachabilityTimeoutMs)),
+    [],
+  );
+  useEffect(() => {
+    void connectivity.getState().check();
+  }, [connectivity]);
+  const connState = useStore(connectivity, (s) => s.state);
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
         <StatusBar style="light" />
+        <ConnectivityBanner state={connState} onRetry={() => void connectivity.getState().check()} />
         <View style={{ flex: 1 }}>{tab === 0 ? <Flow /> : <GalleryScreen />}</View>
         <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: tokens.line }}>
           <TabButton label="Flow" active={tab === 0} onPress={() => setTab(0)} />
