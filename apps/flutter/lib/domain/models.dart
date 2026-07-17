@@ -134,3 +134,12 @@ class Order {
   bool get isPending => status == OrderStatus.pending;
   bool get isSettled => status != OrderStatus.pending;
 }
+
+/// A pair of tokens from the auth endpoints. The access token travels on every request; the
+/// refresh token is long-lived, rotates on use, and belongs in the platform secure store.
+class TokenPair {
+  final String accessToken;
+  final String refreshToken;
+  final int expiresInSeconds;
+  const TokenPair({required this.accessToken, required this.refreshToken, required this.expiresInSeconds});
+}

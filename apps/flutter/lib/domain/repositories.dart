@@ -34,3 +34,20 @@ abstract interface class OrderRepository {
 abstract interface class IdempotencyKeyFactory {
   String newKey();
 }
+
+/// Authenticates and rotates tokens. Login proves identity with credentials; refresh proves
+/// it with the refresh token itself. Both are unauthenticated in the bearer sense.
+abstract interface class AuthRepository {
+  Future<Outcome<TokenPair>> login(String email, String password);
+
+  /// Exchanges [refreshToken] for a new, rotated pair. A failure means the session is over.
+  Future<Outcome<TokenPair>> refresh(String refreshToken);
+}
+
+/// Persists the token pair: access token in memory, refresh token in the platform secure
+/// store. [InMemoryTokenStore] is the test/demo implementation.
+abstract interface class TokenStore {
+  TokenPair? current();
+  void save(TokenPair tokens);
+  void clear();
+}
