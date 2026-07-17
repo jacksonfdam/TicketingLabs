@@ -9,6 +9,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import com.ticketinglabs.client.config.AppConfig
+import com.ticketinglabs.client.data.health.HttpReachabilityChecker
+import com.ticketinglabs.client.presentation.ConnectivityViewModel
+import com.ticketinglabs.client.ui.components.ConnectivityBanner
 import com.ticketinglabs.client.core.Outcome
 import com.ticketinglabs.client.core.UiState
 import com.ticketinglabs.client.demo.DemoEventRepository
@@ -54,6 +62,11 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
         val orderRepo = remember { DemoOrderRepository() }
         val keys = remember { DemoIdempotencyKeyFactory() }
 
+        val connectivityVm = viewModel {
+            ConnectivityViewModel(HttpReachabilityChecker(AppConfig.DEFAULT_BASE_URL, AppConfig.REACHABILITY_TIMEOUT_MS))
+        }
+        val connectivity by connectivityVm.state.collectAsState()
+
         val eventsVm = viewModel { EventsViewModel(eventRepo) }
         val waitingVm = viewModel { WaitingRoomViewModel(queueRepo, pollIntervalMs = 800) }
         val reservationVm = viewModel { ReservationViewModel(CreateReservationUseCase(reservationRepo), keys) }
@@ -88,6 +101,9 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
             }
         }
 
+        Column(Modifier.fillMaxSize()) {
+        ConnectivityBanner(connectivity, onRetry = { connectivityVm.check() })
+        Box(Modifier.weight(1f)) {
         when (screen) {
             Screen.Events -> EventsScreen(
                 state = eventsState,
@@ -141,6 +157,8 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
                     if (held != null) orderVm.checkout(held.id)
                 },
             )
+        }
+        }
         }
     }
 }
