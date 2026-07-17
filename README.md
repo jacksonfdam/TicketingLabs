@@ -50,8 +50,8 @@ Three rules the whole repo is built to keep true:
   verified), least-privilege DB role, signed webhooks, rate limiting, strict input
   validation, error envelopes that leak nothing. See the
   [security-layers recipe](docs/recipes/security-layers.md).
-- **The recipes** — fourteen concept write-ups in [docs/recipes](docs/recipes/), each
-  pointing at real code, plus a README per backend and the ADRs behind the key decisions.
+- **The recipes** — concept write-ups in [docs/recipes](docs/recipes/) (backend and client),
+  each pointing at real code, plus a README per backend and the ADRs behind the key decisions.
 
 ## The client lab
 
@@ -63,12 +63,14 @@ URL. It is the mobile companion to the seven backends above.
 All three are built, verified and offline-first, consuming the same OpenAPI contract:
 
 - **KMP** — Compose Multiplatform, shared UI in `commonMain`, multiplatform ViewModels. iOS
-  and Android compile; 35 tests on the Android host; Android APK builds.
-- **Flutter** — Cubits + `dio`. `analyze` clean; 23 tests; web bundle builds.
-- **React Native** — Expo, zustand + TanStack Query + `ky`. `typecheck` clean; 19 tests.
+  and Android compile; a unit suite runs on the Android host; the Android APK builds.
+- **Flutter** — Cubits + `dio`. `analyze` clean; unit + widget tests; web bundle builds.
+- **React Native** — Expo, zustand + TanStack Query + `ky`. `typecheck` clean; unit tested.
 
-Each app checks server reachability with a bounded probe (so there is no infinite loading)
-and stays usable offline; the base URL is configured in one place per app.
+Each app checks server reachability with a bounded probe (so there is no infinite loading),
+stays usable offline, handles auth with refresh-token rotation and global sign-out, and reads
+the base URL from one place — pointed at an external tunnel URL for device testing, never a
+local IP.
 
 - [apps/README.md](apps/README.md) — the three clients, how to run each, and where to set the endpoint.
 - [shared/README.md](shared/README.md) — what is single-sourced and why.
