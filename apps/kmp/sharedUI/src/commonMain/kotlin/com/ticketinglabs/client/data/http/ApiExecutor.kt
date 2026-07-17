@@ -7,6 +7,7 @@ import com.ticketinglabs.client.core.NoopLogger
 import com.ticketinglabs.client.core.Outcome
 import com.ticketinglabs.client.core.logError
 import com.ticketinglabs.client.data.ErrorMapper
+import com.ticketinglabs.client.data.auth.SessionManager
 import com.ticketinglabs.client.data.dto.ErrorEnvelopeDto
 import com.ticketinglabs.client.data.mapper.MappingException
 import io.ktor.client.HttpClient
@@ -14,6 +15,7 @@ import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -40,6 +42,7 @@ class ApiExecutor(
     private val client: HttpClient,
     private val json: Json,
     private val logger: Logger = NoopLogger,
+    private val session: SessionManager? = null,
 ) {
     /**
      * @param method HTTP method.
@@ -63,15 +66,23 @@ class ApiExecutor(
         screen: String? = null,
         parse: (String) -> T,
     ): Outcome<T> {
+        suspend fun send(): HttpResponse = client.request(path) {
+            this.method = method
+            url { query.forEach { (k, v) -> parameters.append(k, v) } }
+            idempotencyKey?.let { header("Idempotency-Key", it) }
+            session?.accessToken()?.let { header("Authorization", "Bearer $it") }
+            if (bodyJson != null) {
+                contentType(ContentType.Application.Json)
+                setBody(bodyJson)
+            }
+        }
+
         return try {
-            val response = client.request(path) {
-                this.method = method
-                url { query.forEach { (k, v) -> parameters.append(k, v) } }
-                idempotencyKey?.let { header("Idempotency-Key", it) }
-                if (bodyJson != null) {
-                    contentType(ContentType.Application.Json)
-                    setBody(bodyJson)
-                }
+            var response = send()
+            // Access token expired: refresh (with rotation), then retry the request once. A
+            // failed refresh flips the session to signed-out and the 401 flows on as Unauthorized.
+            if (response.status.value == 401 && session != null && session.refresh()) {
+                response = send()
             }
             val requestId = response.headers["X-Request-Id"]
             val bodyText = response.bodyAsText()
