@@ -43,6 +43,33 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 # iOS: open iosApp/iosApp.xcodeproj in Xcode and run.
 ```
 
+## Endpoint configuration
+
+One place, one constant:
+[`sharedUI/src/commonMain/kotlin/com/ticketinglabs/client/config/AppConfig.kt`](sharedUI/src/commonMain/kotlin/com/ticketinglabs/client/config/AppConfig.kt)
+
+```kotlin
+object AppConfig {
+    const val DEFAULT_BASE_URL = "https://localhost/api"   // <- point at your gateway
+    const val REACHABILITY_TIMEOUT_MS = 4_000
+}
+```
+
+The backend lab's gateway is `https://localhost/api`. On an Android emulator the host machine
+is `https://10.0.2.2/api`, not `localhost`. The app knows nothing else about the backend.
+
+## Offline-first & connectivity
+
+The app never shows an endless spinner. Two guarantees:
+
+- **Bounded reachability.** On start (and on Retry) a `ReachabilityChecker` does one short,
+  timed `GET /health`. It resolves to ONLINE or OFFLINE within `REACHABILITY_TIMEOUT_MS` — it
+  cannot hang. A banner shows "Checking connection…" briefly, then either clears (online) or
+  shows "Server unreachable — working offline" with a Retry.
+- **Offline-first.** The flow renders from local state and stays usable with no server; the
+  banner informs, it never blocks. Every network call carries a request timeout, so each
+  async state resolves into Success / Empty / Error / Timeout — never a spinner with no end.
+
 ## Versions
 
 Aligned to `apps/template`. Pinned in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
