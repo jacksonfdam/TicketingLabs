@@ -46,6 +46,18 @@ function Flow() {
   // Demo mode has no session, so it starts "logged in"; real mode gates on sign-in.
   const [loggedIn, setLoggedIn] = useState(backend.session === null);
   const [loginState, setLoginState] = useState<UiState<void>>({ kind: 'idle' });
+
+  // Real mode: restore a persisted session before deciding to show login. Bounded local read,
+  // so the brief hydrating spinner resolves immediately — never an endless wait.
+  const [hydrating, setHydrating] = useState(backend.hydrateSession !== undefined);
+  useEffect(() => {
+    if (!backend.hydrateSession) return;
+    void backend.hydrateSession().then((restored) => {
+      if (restored) setLoggedIn(true);
+      setHydrating(false);
+    });
+  }, [backend]);
+
   const submitLogin = async (email: string, password: string) => {
     setLoginState({ kind: 'loading' });
     const result = await backend.session!.login(email, password);
@@ -80,6 +92,10 @@ function Flow() {
     }, 1000);
     return () => clearInterval(timer);
   }, [reservationHeld]);
+
+  if (hydrating) {
+    return <ActivityIndicator color={tokens.accent} style={{ flex: 1 }} />;
+  }
 
   if (backend.session && !loggedIn) {
     return <LoginScreen state={loginState} onSubmit={submitLogin} />;

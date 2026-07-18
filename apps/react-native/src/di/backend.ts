@@ -10,7 +10,8 @@ import {
   HttpQueueRepository,
   HttpReservationRepository,
 } from '../data/api';
-import { InMemoryTokenStore, SessionManager } from '../data/auth';
+import { SessionManager } from '../data/auth';
+import { SecureTokenStore } from '../data/secureTokenStore';
 import {
   DemoEventRepository,
   DemoIdempotencyKeyFactory,
@@ -29,6 +30,9 @@ export interface Backend {
   orders: OrderRepository;
   keys: IdempotencyKeyFactory;
   session: SessionManager | null;
+  /** Restores a persisted session into memory on startup, resolving true when one was found (so
+   * the app can skip login). Absent in demo mode. Bounded by a local secure-store read. */
+  hydrateSession?: () => Promise<boolean>;
 }
 
 /** In-memory data, no auth. Runs with no backend. */
@@ -48,7 +52,8 @@ export function realBackend(): Backend {
   const config = { baseUrl: AppConfig.baseUrl };
   // Auth calls go through a session-less executor so refresh does not carry a stale token.
   const authExecutor = new ApiExecutor(buildClient(config));
-  const session = new SessionManager(new InMemoryTokenStore(), new HttpAuthRepository(authExecutor));
+  const store = new SecureTokenStore();
+  const session = new SessionManager(store, new HttpAuthRepository(authExecutor));
   const executor = new ApiExecutor(buildClient(config), undefined, session);
   return {
     eventRepo: new HttpEventRepository(executor),
@@ -57,6 +62,7 @@ export function realBackend(): Backend {
     orders: new HttpOrderRepository(executor),
     keys: new UuidKeys(),
     session,
+    hydrateSession: () => store.hydrate(),
   };
 }
 
