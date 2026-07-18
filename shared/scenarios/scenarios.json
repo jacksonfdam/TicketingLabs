@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "description": "The canonical scenario list. Each app's tests and recipes reference these by id, so 'payment-unknown-outcome' means the same thing in Kotlin, Dart and TypeScript. Flow scenarios cover the happy path per screen; failure scenarios cover the ways each screen is allowed to go wrong. If an app cannot demonstrate a scenario, that is a gap, not a detail.",
+    "version": "0.1.0"
+  },
+  "flow": [
+    { "id": "events-list", "screen": "EventsList", "given": "the events endpoint returns a page", "then": "a cached list renders; pull-to-refresh refetches; server cache headers are respected" },
+    { "id": "event-detail", "screen": "EventDetail", "given": "an event id", "then": "sectors, prices and availability render; sold-out sectors are visibly disabled" },
+    { "id": "queue-join", "screen": "WaitingRoom", "given": "sales are open and the room is busy", "then": "the user joins the queue and sees a position" },
+    { "id": "queue-admitted", "screen": "WaitingRoom", "given": "polling reports status=admitted", "then": "polling stops and the UI transitions to 'you are in'" },
+    { "id": "sector-select", "screen": "SectorSelection", "given": "available sectors", "then": "sector and quantity (1..8) are pickable; controls disable when sold out" },
+    { "id": "reservation-create", "screen": "Reservation", "given": "a chosen sector and quantity", "then": "a hold is created with an Idempotency-Key and a live expiry countdown starts" },
+    { "id": "checkout-create", "screen": "Checkout", "given": "a valid held reservation", "then": "an order is created; status shows pending and polling begins" },
+    { "id": "order-paid", "screen": "OrderStatus", "given": "polling reports status=paid", "then": "the paid state renders with a confirmation affordance" }
+  ],
+  "failure": [
+    { "id": "network-unavailable", "appliesTo": ["EventsList", "EventDetail", "Reservation", "Checkout"], "taxonomy": "NetworkUnavailable", "then": "an Error state with a retry affordance; no crash, no silent swallow" },
+    { "id": "request-timeout", "appliesTo": ["EventsList", "Checkout", "OrderStatus"], "taxonomy": "Timeout", "then": "a TimedOut state distinct from Error; retry available" },
+    { "id": "token-expired", "appliesTo": ["EventDetail", "Reservation", "Checkout"], "taxonomy": "Unauthorized", "then": "automatic refresh with rotation; on refresh failure, global sign-out" },
+    { "id": "rate-limited", "appliesTo": ["WaitingRoom", "Reservation"], "taxonomy": "RateLimited", "then": "respect Retry-After; back off polling; show a wait affordance" },
+    { "id": "sold-out-conflict", "appliesTo": ["SectorSelection", "Reservation"], "taxonomy": "Conflict", "then": "Conflict state; refresh availability and re-pick" },
+    { "id": "reservation-expired", "appliesTo": ["Reservation", "Checkout"], "taxonomy": "Conflict", "then": "countdown hits zero; hold is gone; recover by starting over" },
+    { "id": "malformed-response", "appliesTo": ["EventsList", "EventDetail", "OrderStatus"], "taxonomy": "MalformedResponse", "then": "defensive parse rejects the payload; MalformedResponse state; never a crash" },
+    { "id": "server-error", "appliesTo": ["EventsList", "Checkout"], "taxonomy": "ServerError", "then": "5xx maps to ServerError; retry available; request_id captured" },
+    { "id": "double-tap-reservation", "appliesTo": ["Reservation"], "taxonomy": null, "then": "two rapid taps produce one reservation; the Idempotency-Key makes the retry a no-op" }
+  ],
+  "payment": [
+    { "id": "payment-paid", "startState": "pending", "endState": "paid", "then": "webhook confirms; polling stops on paid" },
+    { "id": "payment-declined", "startState": "pending", "endState": "failed", "taxonomy": "PaymentDeclined", "then": "declined maps to a failed state with a 'try another method' affordance" },
+    { "id": "payment-unknown-outcome", "startState": "pending", "endState": "unknown-until-reconciled", "taxonomy": "PaymentUnknown", "then": "gateway timed out with unknown result; the app must NOT assume failure and must reconcile by polling; no double-charge, no false failure" },
+    { "id": "payment-network-drop", "startState": "pending", "endState": "reconciled-via-idempotency", "then": "network drops mid-request; the Idempotency-Key makes the retry safe; outcome resolved by polling" },
+    { "id": "payment-delayed-webhook", "startState": "pending", "endState": "paid", "then": "confirmation is late; the app keeps polling and does not give up prematurely" },
+    { "id": "payment-refund", "startState": "paid", "endState": "refunded", "then": "a refund transitions paid to refunded with its own UI" }
+  ]
+}

@@ -1,5 +1,7 @@
 # Ticketing Labs
 
+[![CI](https://github.com/jacksonfdam/TicketingLabs/actions/workflows/ci.yml/badge.svg)](https://github.com/jacksonfdam/TicketingLabs/actions/workflows/ci.yml)
+
 One flash-sale ticketing system, implemented in seven backend frameworks, served by a
 single frontend that has no idea which backend is answering. It is a teaching lab, not
 a product. The goal is to show the same hard problems being solved seven different
@@ -50,8 +52,33 @@ Three rules the whole repo is built to keep true:
   verified), least-privilege DB role, signed webhooks, rate limiting, strict input
   validation, error envelopes that leak nothing. See the
   [security-layers recipe](docs/recipes/security-layers.md).
-- **The recipes** — fourteen concept write-ups in [docs/recipes](docs/recipes/), each
-  pointing at real code, plus a README per backend and the ADRs behind the key decisions.
+- **The recipes** — concept write-ups in [docs/recipes](docs/recipes/) (backend and client),
+  each pointing at real code, plus a README per backend and the ADRs behind the key decisions.
+
+## The client lab
+
+The same ticketing client, built three times — Kotlin Multiplatform, Flutter, React
+Native — so you can compare how each platform solves the same problems. Same contract,
+same seven-screen flow, same states, each app blind to the backend behind a single base
+URL. It is the mobile companion to the seven backends above.
+
+All three are built, verified and offline-first, consuming the same OpenAPI contract:
+
+- **KMP** — Compose Multiplatform, shared UI in `commonMain`, multiplatform ViewModels. iOS
+  and Android compile; a unit suite runs on the Android host; the Android APK builds.
+- **Flutter** — Cubits + `dio`. `analyze` clean; unit + widget tests; web bundle builds.
+- **React Native** — Expo, zustand + TanStack Query + `ky`. `typecheck` clean; unit tested.
+
+Each app checks server reachability with a bounded probe (so there is no infinite loading),
+stays usable offline, handles auth with refresh-token rotation and global sign-out, and reads
+the base URL from one place — pointed at an external tunnel URL for device testing, never a
+local IP.
+
+- [apps/README.md](apps/README.md) — the three clients, how to run each, and where to set the endpoint.
+- [shared/README.md](shared/README.md) — what is single-sourced and why.
+- [docs/client-architecture.md](docs/client-architecture.md) — the shared layering.
+- [docs/client-state-machines.md](docs/client-state-machines.md) — reservation + order, in Mermaid.
+- [ADR 0007](docs/adr/0007-three-clients-one-contract.md) / [ADR 0008](docs/adr/0008-shared-client-assets-single-source.md) — the decisions behind it.
 
 ## Quick start
 
@@ -76,6 +103,11 @@ is live at `https://localhost/api` (self-signed TLS, so use `curl -k`).
 
 Demo credentials (seeded): `buyer@ticketing.local` / `password123`.
 
+To test from another device (a real phone, an emulator), expose the gateway over an external
+HTTPS URL instead of a local IP: `make tunnel` (ngrok) or `cloudflared tunnel --url
+http://localhost:80`, then point the web and mobile clients at `https://<tunnel-host>/api`. See
+[the tunnel recipe](docs/recipes/expose-with-a-tunnel.md).
+
 Switch the active backend by editing one line in `.env` — `COMPOSE_PROFILES` is one of
 `go`, `fastapi`, `nest`, `express`, `laravel`, `symfony`, `phalcon` — and running
 `make up` again. The frontend, gateway, and contract do not change. See
@@ -99,8 +131,10 @@ contract/     openapi.yaml (source of truth), db schema + migrations, contract t
 backends/     one directory per framework: go, fastapi, nest, express, laravel, symfony, phalcon
 services/     payment-gateway-fake (external provider simulator with a failure switch)
 frontend/     React + Vite + TypeScript SPA
+shared/       single-sourced client assets: contract mirror, tokens, scenarios, copy
+apps/         the three mobile clients: kmp, flutter, react-native
 infra/        gateway config, k8s manifests, observability, load tests
-docs/         architecture.md, domain-model.md, adr/, recipes/
+docs/         architecture.md, domain-model.md, client-architecture.md, adr/, recipes/
 ```
 
 ## Where to read next
@@ -110,6 +144,25 @@ docs/         architecture.md, domain-model.md, adr/, recipes/
   reservation/order state machines.
 - [docs/adr/](docs/adr/) — why things are the way they are.
 - [contract/openapi.yaml](contract/openapi.yaml) — the contract everything obeys.
+
+## Why I built this
+
+This lab is a workout, not a product, and it isn't here to show off. Before moving to Sweden I
+worked as a mobile developer — native Android and iOS — and also fullstack (PHP, Node) and
+devops/SRE, so it exists to keep those muscles honest: to try languages I don't reach for daily
+(Go), sharpen my Python, and actually learn Flutter and React Native rather than nod along in
+meetings.
+
+I picked a problem of medium complexity on purpose. A flash sale makes you get correctness
+right from the database up and then defend it through the API, the gateway, and every client,
+so one thread — don't oversell — runs the whole length of the stack: concurrency, security, and
+how a web app and three mobile clients consume the exact same contract. I've never held a grudge
+against a language, framework or platform. (Okay: ASP.)
+
+I learned a great deal building it and I'm still learning. If any of it is useful to you, that's
+the point.
+
+Jackson Mafra — [linkedin.com/in/jacksonfdam](https://www.linkedin.com/in/jacksonfdam/)
 
 ## License
 

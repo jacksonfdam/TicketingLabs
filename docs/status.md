@@ -84,6 +84,40 @@ Nothing here is aspirational — each ✅ links to code or a recipe and was exer
 Foundation (contract, schema, infra) ✅ · reference backend ✅ · frontend ✅ · all seven
 backends ✅ · resilience + observability ✅ · load test + scale + k8s ✅ · recipes + ADRs ✅.
 
+## Client lab (mobile) — Definition of Done
+
+The three clients — Kotlin Multiplatform, Flutter, React Native — against the same contract.
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Identical seven-screen flow; base URL injected; no backend-specific code | ✅ | one flow per app; base URL in a single `AppConfig` per app |
+| Every async operation resolves into an explicit modelled state; no silent catches | ✅ | `Outcome`/`AppError` taxonomy + `UiState` in all three, unit-tested |
+| Offline-first: bounded reachability check, no infinite loading | ✅ | `ReachabilityChecker` + connectivity state; request timeouts throughout; tested in all three |
+| Payment matrix incl. unknown-outcome (no double-charge, no false failure) | ✅ | reconcile-and-poll use case + state holder; unit-tested (unknown → `PaymentUnknown`, same idempotency key) |
+| Token handling: refresh in the platform secure store, rotated, global sign-out | ✅ | `SessionManager` (single-flight refresh-on-401, rotation, sign-out) over a `TokenStore` port; real mode backs it with Keychain / EncryptedSharedPreferences / `expo-secure-store`; tested in all three (KMP end-to-end via MockEngine) |
+| Runs against the real gateway, not just demo data | ✅ | a `Backend` factory + `USE_REAL_BACKEND` flag builds real HTTP repositories with a session; a login screen gates the flow (all three) |
+| Every atom/molecule/organism has previews across its states | ✅ | `@Preview` + Gallery (KMP); gallery screens (Flutter, RN) |
+| Classes and non-trivial functions documented | ✅ | KDoc / dartdoc / TSDoc throughout |
+| Builds and tests verified | ✅ | KMP: iOS + Android compile, 35 host tests, Android APK · Flutter: analyze clean, 23 tests, web build · RN: typecheck clean, 19 tests |
+| Atomic Conventional Commits per platform | ✅ | `feat(kmp\|flutter\|react-native): …` history |
+
+Scoped, and stated plainly: React Native generates its wire DTO types from the contract
+(`openapi-typescript`, with drift-proof enum maps); KMP and Flutter still hand-write DTOs (the
+OpenAPI Generator path is documented). Secure token storage uses an in-memory store in the demo;
+in real mode all three back the refresh token with the platform secure store behind the same
+`TokenStore` port — iOS Keychain and Android EncryptedSharedPreferences on KMP (a synchronous
+`expect`/`actual`), `flutter_secure_storage` on Flutter and `expo-secure-store` on React Native
+(async, bridged by an in-memory mirror hydrated on startup). A persisted session is restored on
+cold start; sign-out clears the store. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
+server state is cached with invalidation on reservation (a TTL decorator on KMP/Flutter,
+TanStack Query on RN). Certificate/public-key pinning is documented per platform with the
+dev bypass (a production posture, off in the tunnel/localhost dev flow). Contract codegen is
+wired end-to-end in React Native (`openapi-typescript`, drift-proof enums); for KMP and Flutter
+the OpenAPI Generator approach is documented (with the JVM-type caveat) rather than wired,
+deliberately — their hand-written, unit-tested defensive mappers stay the runtime boundary
+instead of being swapped for generated runtime models with platform-type friction. The
+cross-platform recipes are authored (see `docs/recipes`).
+
 ## Outstanding (all non-security, scoped as future work)
 
 - Individually load-test the remaining five backends (mechanism is identical; contract passes on all).

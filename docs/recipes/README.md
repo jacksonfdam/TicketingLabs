@@ -47,6 +47,39 @@ Every one is reproducible from a fresh clone. New recipes follow [TEMPLATE.md](T
 - [Distributed tracing with OpenTelemetry](distributed-tracing-go.md) — the inside of a
   request: `POST` → lock → decrement.
 
+## Clients (mobile) — one concept, three platforms
+
+Each takes a single client concern and shows it in Kotlin Multiplatform, Flutter and React
+Native side by side, with real file paths.
+
+- [Test against an external HTTPS URL with a tunnel](expose-with-a-tunnel.md) — bring up the
+  infra, front the gateway with ngrok or Cloudflare Tunnel, and point every client (web and
+  mobile) at the tunnel URL instead of a local IP.
+
+- [The injected base URL (and a reachability probe that can't hang)](client-injected-base-url.md)
+  — one place to configure the gateway; a bounded `/health` check that resolves to online/offline.
+- [Async as an explicit state, errors as a typed taxonomy](client-explicit-async-state.md) —
+  `UiState` and `AppError` modelled once so the UI is a pure function of state.
+- [Defensive deserialization](client-defensive-deserialization.md) — parsing is validation;
+  a bad payload becomes one `MalformedResponse`, never a crash.
+- [Idempotency, the double tap, and the unknown payment](client-idempotency-and-payment.md) —
+  one idempotency key per intent, an in-flight guard, and reconcile-by-polling so a timed-out
+  charge is neither double-billed nor falsely failed.
+- [Generating wire types from the contract](client-codegen-from-contract.md) — `openapi-typescript`
+  wired in React Native (drift-proof enums), and the OpenAPI Generator approach for KMP/Flutter.
+- [Token storage and refresh rotation](client-token-refresh-rotation.md) — access token in
+  memory, refresh token rotated on use, single-flight refresh-on-401, global sign-out on failure.
+- [A component and all its states, in isolation](client-component-previews.md) — `@Preview`
+  and on-device galleries so the error state has a front door.
+- [Atomic Design on the Order Status screen](client-atomic-design.md) — atoms → organisms →
+  screen, state in and events up, taken apart across the three apps.
+- [Lists that only render what's on screen](client-list-performance.md) — LazyColumn /
+  ListView.builder / FlatList, so a long catalogue never builds off-screen rows.
+- [Caching server state, and invalidating it](client-server-state-cache.md) — a TTL read-through
+  cache (KMP/Flutter) or TanStack Query (RN), dropped on the reservation that changes availability.
+- [Certificate (public-key) pinning](client-certificate-pinning.md) — pin the gateway's key per
+  platform, with the dev bypass so tunnels and localhost still connect.
+
 ## Per-backend
 
 Each backend's own README is a "recipe" for that stack — how it expresses the same

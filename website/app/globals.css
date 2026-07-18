@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0d0f13;
+  --panel: #161a22;
+  --line: #262c38;
+  --text: #e7e9ee;
+  --muted: #93a0b4;
+  --accent: #5b9bff;
+  --accent-2: #7ee0a2;
+}
+
+/* Base element styles live in @layer base so Tailwind utility classes
+   (text-white, text-[var(--muted)], ...) still win over them. Unlayered
+   rules would otherwise beat every utility in Tailwind v4. */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+/* --- rendered markdown --- */
+.prose-docs { max-width: 46rem; }
+.prose-docs h1 { font-size: 1.9rem; font-weight: 800; margin: 0 0 1rem; letter-spacing: -0.01em; }
+.prose-docs h2 { font-size: 1.35rem; font-weight: 700; margin: 2rem 0 0.75rem; border-top: 1px solid var(--line); padding-top: 1.25rem; }
+.prose-docs h3 { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
+.prose-docs p { margin: 0.85rem 0; color: #d7dbe4; }
+.prose-docs ul, .prose-docs ol { margin: 0.85rem 0; padding-left: 1.4rem; }
+.prose-docs li { margin: 0.35rem 0; }
+.prose-docs strong { color: #fff; }
+.prose-docs code { background: #1e2430; border: 1px solid var(--line); border-radius: 5px; padding: 0.1rem 0.35rem; font-size: 0.87em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.prose-docs pre.code-block { background: #12161d; border: 1px solid var(--line); border-radius: 10px; padding: 1rem; overflow-x: auto; margin: 1rem 0; font-size: 0.85rem; line-height: 1.5; }
+.prose-docs pre.code-block code { background: none; border: none; padding: 0; font-size: inherit; }
+.prose-docs blockquote { border-left: 3px solid var(--accent); margin: 1rem 0; padding: 0.2rem 0 0.2rem 1rem; color: var(--muted); }
+.prose-docs table { border-collapse: collapse; width: 100%; margin: 1rem 0; display: block; overflow-x: auto; font-size: 0.9rem; }
+.prose-docs th, .prose-docs td { border: 1px solid var(--line); padding: 0.5rem 0.75rem; text-align: left; }
+.prose-docs th { background: var(--panel); }
+.prose-docs hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
+.mermaid-diagram svg { max-width: 100%; height: auto; }
