@@ -1,5 +1,5 @@
-/// The demo flow shell: seven screens, one linear flow, wired to the real cubits over the
-/// in-memory demo repositories. This is the composition root for the demo.
+/// The flow shell: seven screens, one linear flow, plus a login gate. The composition root —
+/// it builds the demo or real dependency graph and drives navigation.
 library;
 
 import 'dart:async';
@@ -7,12 +7,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'config/app_config.dart';
 import 'core/core.dart';
-import 'data/cache.dart';
-import 'demo/demo.dart';
+import 'data/api.dart';
+import 'di/backend.dart';
 import 'domain/models.dart';
 import 'domain/usecases.dart';
 import 'presentation/cubits.dart';
+import 'ui/login_screen.dart';
 import 'ui/screens.dart';
 
 enum _Screen { events, detail, waiting, sectors, reservation, order }
@@ -24,21 +26,28 @@ class FlowApp extends StatefulWidget {
 }
 
 class _FlowAppState extends State<FlowApp> {
-  final _eventRepo = CachingEventRepository(DemoEventRepository());
-  final _queueRepo = DemoQueueRepository();
-  final _reservationRepo = DemoReservationRepository();
-  final _orderRepo = DemoOrderRepository();
-  final _keys = DemoIdempotencyKeyFactory();
+  late final Backend _backend =
+      AppConfig.useRealBackend ? realBackend(ApiConfig(baseUrl: AppConfig.baseUrl)) : demoBackend();
 
-  late final EventsCubit _events = EventsCubit(_eventRepo)..load();
-  late final WaitingRoomCubit _waiting = WaitingRoomCubit(_queueRepo, interval: const Duration(milliseconds: 800));
-  late final ReservationCubit _reservation = ReservationCubit(CreateReservationUseCase(_reservationRepo), _keys);
-  late final OrderCubit _order = OrderCubit(CreateOrderUseCase(_orderRepo), _orderRepo, _keys, interval: const Duration(milliseconds: 600));
+  late final EventsCubit _events = EventsCubit(_backend.events);
+  late final WaitingRoomCubit _waiting = WaitingRoomCubit(_backend.queue, interval: const Duration(milliseconds: 800));
+  late final ReservationCubit _reservation = ReservationCubit(CreateReservationUseCase(_backend.reservations), _backend.keys);
+  late final OrderCubit _order = OrderCubit(CreateOrderUseCase(_backend.orders), _backend.orders, _backend.keys, interval: const Duration(milliseconds: 600));
+
+  // Demo mode has no session, so it starts "logged in"; real mode gates on sign-in.
+  late bool _loggedIn = _backend.session == null;
+  UiState<void> _loginState = const UiIdle();
 
   _Screen _screen = _Screen.events;
   EventDetail? _detail;
   int _remainingMs = 120000;
   Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_loggedIn) _events.load();
+  }
 
   @override
   void dispose() {
@@ -50,12 +59,27 @@ class _FlowAppState extends State<FlowApp> {
     super.dispose();
   }
 
+  Future<void> _submitLogin(String email, String password) async {
+    setState(() => _loginState = const UiLoading());
+    final result = await _backend.session!.login(email, password);
+    if (!mounted) return;
+    setState(() {
+      if (result is Success<TokenPair>) {
+        _loggedIn = true;
+        _loginState = const UiIdle();
+        _events.load();
+      } else if (result is Failure<TokenPair>) {
+        _loginState = errorToUiState<void>(result.error);
+      }
+    });
+  }
+
   Future<void> _openEvent(Event event) async {
     setState(() {
       _detail = null;
       _screen = _Screen.detail;
     });
-    final result = await _eventRepo.getEvent(event.id);
+    final result = await _backend.events.getEvent(event.id);
     if (!mounted) return;
     setState(() => _detail = result is Success<EventDetail> ? result.value : null);
   }
@@ -72,6 +96,9 @@ class _FlowAppState extends State<FlowApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_backend.session != null && !_loggedIn) {
+      return LoginScreen(state: _loginState, onSubmit: _submitLogin);
+    }
     switch (_screen) {
       case _Screen.events:
         return BlocBuilder<EventsCubit, UiState<List<Event>>>(
@@ -105,7 +132,7 @@ class _FlowAppState extends State<FlowApp> {
           detail: _detail!,
           onReserve: (sector, quantity) {
             _reservation.reserve(sector.id, quantity);
-            _eventRepo.invalidate(); // the hold changed availability; drop cached reads
+            _backend.events.invalidate(); // the hold changed availability; drop cached reads
             _startCountdown();
             setState(() => _screen = _Screen.reservation);
           },
