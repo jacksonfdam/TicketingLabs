@@ -16,15 +16,19 @@ flutter build ios            # iOS (needs Xcode)
 
 ## Endpoint configuration
 
-One place: [`lib/config/app_config.dart`](lib/config/app_config.dart). The default is the
-backend lab's local gateway; override at build time without editing code:
+One place: [`lib/config/app_config.dart`](lib/config/app_config.dart). Point it at the gateway
+through an external HTTPS **tunnel** — the address a real phone (and the emulator/simulator) can
+reach and trust. Bring the tunnel up with `make up && make tunnel` (ngrok; Cloudflare Tunnel
+works too), then inject its URL at build time — no code edit:
 
 ```bash
-flutter run --dart-define=BASE_URL=https://10.0.2.2/api
+flutter run --dart-define=BASE_URL=https://<your-tunnel-host>/api
 ```
 
-`https://localhost/api` is the gateway on desktop/web; on an Android emulator the host is
-`10.0.2.2`. The app knows nothing else about the backend.
+Never point a device at a local IP. `https://localhost/api` only works for the desktop/web
+target on the same machine, and an Android emulator would need `https://10.0.2.2/api` — both are
+dev-only conveniences, not for a device. See [the tunnel recipe](../../docs/recipes/expose-with-a-tunnel.md).
+The app knows nothing else about the backend.
 
 ## Offline-first & connectivity
 

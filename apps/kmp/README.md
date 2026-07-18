@@ -50,13 +50,18 @@ One place, one constant:
 
 ```kotlin
 object AppConfig {
-    const val DEFAULT_BASE_URL = "https://localhost/api"   // <- point at your gateway
+    const val DEFAULT_BASE_URL = "https://localhost/api"   // <- set to your tunnel: https://<host>/api
     const val REACHABILITY_TIMEOUT_MS = 4_000
 }
 ```
 
-The backend lab's gateway is `https://localhost/api`. On an Android emulator the host machine
-is `https://10.0.2.2/api`, not `localhost`. The app knows nothing else about the backend.
+Point it at the gateway through an external HTTPS **tunnel** — the address a real phone (and the
+iOS/Android simulator) can reach and trust. Bring it up with `make up && make tunnel` (ngrok;
+Cloudflare Tunnel works too) and set `DEFAULT_BASE_URL` to `https://<your-tunnel-host>/api`.
+Never point a device at a local IP: `https://localhost/api` only works on the same machine, and
+an Android emulator would need `https://10.0.2.2/api` — both are dev-only conveniences. See
+[the tunnel recipe](../../docs/recipes/expose-with-a-tunnel.md). The app knows nothing else about
+the backend.
 
 ## Offline-first & connectivity
 

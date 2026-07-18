@@ -1,13 +1,14 @@
 // App configuration. The ONE place to point the client at a backend.
 //
 // The app is blind to which backend answers; it only knows this base URL (the API Gateway).
-// Override without editing code via an Expo public env var:
+// Point it at an external HTTPS tunnel — the address a real phone (and the simulator) can reach
+// and trust. Run `make up && make tunnel` (ngrok; Cloudflare Tunnel works too) and pass its URL:
 //
-//   EXPO_PUBLIC_BASE_URL=https://<subdomain>.ngrok-free.app/api npx expo start
+//   EXPO_PUBLIC_BASE_URL=https://<your-tunnel-host>/api npx expo start
 //
-// For real devices, prefer an external HTTPS tunnel over a local IP: run `make tunnel` and use
-// its URL. See docs/recipes/expose-with-a-tunnel.md. (Local run: https://localhost/api; Android
-// emulator: https://10.0.2.2/api; a physical phone reaches neither.)
+// See docs/recipes/expose-with-a-tunnel.md. Never use a local IP: https://localhost/api only
+// works on the same machine and an Android emulator would need https://10.0.2.2/api — both
+// dev-only, and a physical phone reaches neither.
 
 export const AppConfig = {
   /** The API Gateway base URL. Override with EXPO_PUBLIC_BASE_URL. */

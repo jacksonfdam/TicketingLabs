@@ -75,9 +75,11 @@ In all three, a tiny state holder (`ConnectivityViewModel` / `ConnectivityCubit`
 ## How to see it work
 
 Run any app with no backend up: the banner settles on "Server unreachable — working offline"
-within ~4s and the flow still renders from local state. Start the backend lab
-(`make up`) and hit Retry: it flips to online. On an Android emulator set the base URL to
-`https://10.0.2.2/api` — `localhost` there is the emulator, not your machine.
+within ~4s and the flow still renders from local state. Start the backend lab (`make up`), bring
+up a tunnel (`make tunnel`), point the base URL at `https://<your-tunnel-host>/api`, and hit
+Retry: it flips to online — and the same URL works from a real phone. (On the same machine you
+can use `https://localhost/api`; an Android emulator would need `https://10.0.2.2/api` — both are
+dev-only shortcuts, never a device.)
 
 ## Trade-offs
 

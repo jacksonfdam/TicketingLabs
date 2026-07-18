@@ -22,14 +22,18 @@ npx expo run:android     # native Android build+run
 
 ## Endpoint configuration
 
-One place: [`src/config/appConfig.ts`](src/config/appConfig.ts). The default is the backend
-lab's local gateway; override without editing code via an Expo public env var:
+One place: [`src/config/appConfig.ts`](src/config/appConfig.ts). Point it at the gateway through
+an external HTTPS **tunnel** — the address a real phone (and the emulator/simulator) can reach
+and trust. Bring the tunnel up with `make up && make tunnel` (ngrok; Cloudflare Tunnel works
+too), then pass its URL via an Expo public env var — no code edit:
 
 ```bash
-EXPO_PUBLIC_BASE_URL=https://10.0.2.2/api npx expo start
+EXPO_PUBLIC_BASE_URL=https://<your-tunnel-host>/api npx expo start
 ```
 
-`https://localhost/api` is the gateway on web; on an Android emulator the host is `10.0.2.2`.
+Never point a device at a local IP. `https://localhost/api` only works for the web target on the
+same machine, and an Android emulator would need `https://10.0.2.2/api` — both are dev-only
+conveniences, not for a device. See [the tunnel recipe](../../docs/recipes/expose-with-a-tunnel.md).
 The app knows nothing else about the backend.
 
 ## Offline-first & connectivity

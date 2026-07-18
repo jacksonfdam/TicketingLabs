@@ -26,8 +26,9 @@ Each app's own README has the specifics. In short:
 Prefer an **external HTTPS tunnel** over a local IP so any device (real phone included) can
 reach the gateway: `make up`, then `make tunnel` (ngrok) or `cloudflared tunnel --url
 http://localhost:80`, and point each client at `https://<tunnel-host>/api`. Never consume the
-local IP. See [the tunnel recipe](../docs/recipes/expose-with-a-tunnel.md). (Bare fallbacks:
-`https://localhost/api`, or `https://10.0.2.2/api` on an Android emulator.)
+local IP. See [the tunnel recipe](../docs/recipes/expose-with-a-tunnel.md). (Dev-only, same
+machine: `https://localhost/api`; an Android emulator would need `https://10.0.2.2/api` — neither
+reaches a real device.)
 
 **Demo vs real backend.** By default each app runs on in-memory demo data (works with no
 server). To consume the real gateway — real HTTP repositories, a session with refresh

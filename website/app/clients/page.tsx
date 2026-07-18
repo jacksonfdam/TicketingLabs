@@ -98,8 +98,10 @@ export default function ClientsPage() {
         <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5">
           <h3 className="text-base font-bold">One place to set the endpoint</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Each app reads only a base URL (the gateway; <code>https://localhost/api</code>, or{' '}
-            <code>https://10.0.2.2/api</code> on an Android emulator):
+            Each app reads only a base URL. Point it at the gateway through an external HTTPS
+            tunnel — the address a real phone (and the simulator) can reach and trust. Run{' '}
+            <code>make up &amp;&amp; make tunnel</code> (ngrok, or Cloudflare Tunnel) and use{' '}
+            <code>https://&lt;your-tunnel-host&gt;/api</code>, set in one place per app:
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-[var(--muted)]">
             <li>KMP — <code>config/AppConfig.kt</code></li>
@@ -107,9 +109,9 @@ export default function ClientsPage() {
             <li>React Native — <code>src/config/appConfig.ts</code> (or <code>EXPO_PUBLIC_BASE_URL</code>)</li>
           </ul>
           <p className="mt-3 text-sm text-[var(--muted)]">
-            For real devices, front the gateway with a tunnel (<code>make tunnel</code> / ngrok, or
-            Cloudflare Tunnel) and use the external HTTPS URL — never a local IP. See{' '}
-            <Link href="/recipes/expose-with-a-tunnel">the tunnel recipe</Link>.
+            Never point a device at a local IP: <code>https://localhost/api</code> only works on the
+            same machine and an Android emulator would need <code>https://10.0.2.2/api</code> — both
+            dev-only. See <Link href="/recipes/expose-with-a-tunnel">the tunnel recipe</Link>.
           </p>
         </div>
         <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5">
