@@ -38,6 +38,8 @@ dependencies:
   # State holders (Cubit) and HTTP client, mirroring the shared architecture.
   flutter_bloc: ^9.1.1
   dio: ^5.9.0
+  # Refresh token lives in the platform secure store (Keychain / Keystore).
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

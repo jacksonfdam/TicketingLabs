@@ -6,6 +6,7 @@ import 'dart:math';
 import '../data/api.dart';
 import '../data/auth.dart';
 import '../data/cache.dart';
+import '../data/secure_token_store.dart';
 import '../demo/demo.dart';
 import '../domain/repositories.dart';
 
@@ -18,6 +19,12 @@ class Backend {
   final OrderRepository orders;
   final IdempotencyKeyFactory keys;
   final SessionManager? session;
+
+  /// Restores a persisted session into memory on startup, returning true when one was found
+  /// (so the app can skip login). Null in demo mode. Bounded by a local secure-store read, so
+  /// it never blocks the UI indefinitely.
+  final Future<bool> Function()? hydrateSession;
+
   Backend({
     required this.events,
     required this.queue,
@@ -25,6 +32,7 @@ class Backend {
     required this.orders,
     required this.keys,
     this.session,
+    this.hydrateSession,
   });
 }
 
@@ -41,7 +49,8 @@ Backend demoBackend() => Backend(
 Backend realBackend(ApiConfig config) {
   // Auth calls go through a session-less executor so refresh does not carry a stale token.
   final authExecutor = ApiExecutor(buildDio(config));
-  final session = SessionManager(InMemoryTokenStore(), HttpAuthRepository(authExecutor));
+  final store = SecureTokenStore();
+  final session = SessionManager(store, HttpAuthRepository(authExecutor));
   final executor = ApiExecutor(buildDio(config), session: session);
   return Backend(
     events: CachingEventRepository(HttpEventRepository(executor)),
@@ -50,6 +59,7 @@ Backend realBackend(ApiConfig config) {
     orders: HttpOrderRepository(executor),
     keys: _RandomKeyFactory(),
     session: session,
+    hydrateSession: store.hydrate,
   );
 }
 

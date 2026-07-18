@@ -46,6 +46,15 @@ class _FlowAppState extends State<FlowApp> {
   @override
   void initState() {
     super.initState();
+    _boot();
+  }
+
+  /// Restores a persisted session (real mode) before deciding whether to show login, then
+  /// loads events. The hydrate is a bounded local read, so this never hangs the first frame.
+  Future<void> _boot() async {
+    final restored = await _backend.hydrateSession?.call() ?? false;
+    if (!mounted) return;
+    if (restored) setState(() => _loggedIn = true);
     if (_loggedIn) _events.load();
   }
 
