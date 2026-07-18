@@ -29,6 +29,12 @@ http://localhost:80`, and point each client at `https://<tunnel-host>/api`. Neve
 local IP. See [the tunnel recipe](../docs/recipes/expose-with-a-tunnel.md). (Bare fallbacks:
 `https://localhost/api`, or `https://10.0.2.2/api` on an Android emulator.)
 
+**Demo vs real backend.** By default each app runs on in-memory demo data (works with no
+server). To consume the real gateway — real HTTP repositories, a session with refresh
+rotation, and a login screen — flip one flag: KMP `AppConfig.USE_REAL_BACKEND = true`,
+Flutter `--dart-define=USE_REAL_BACKEND=true`, React Native `EXPO_PUBLIC_USE_REAL_BACKEND=true`.
+Seeded demo login: `buyer@ticketing.local` / `password123`.
+
 **Offline-first, no infinite loading** — all three behave the same way: on start (and on
 Retry) a bounded reachability probe hits `{baseUrl}/health` with a short timeout and resolves
 to online/offline — it never hangs. A banner surfaces server status; the flow renders from

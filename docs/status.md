@@ -95,6 +95,7 @@ The three clients — Kotlin Multiplatform, Flutter, React Native — against th
 | Offline-first: bounded reachability check, no infinite loading | ✅ | `ReachabilityChecker` + connectivity state; request timeouts throughout; tested in all three |
 | Payment matrix incl. unknown-outcome (no double-charge, no false failure) | ✅ | reconcile-and-poll use case + state holder; unit-tested (unknown → `PaymentUnknown`, same idempotency key) |
 | Token handling: access in memory, refresh rotated, global sign-out | ✅ | `SessionManager` (single-flight refresh-on-401, rotation, sign-out); tested in all three (KMP end-to-end via MockEngine) |
+| Runs against the real gateway, not just demo data | ✅ | a `Backend` factory + `USE_REAL_BACKEND` flag builds real HTTP repositories with a session; a login screen gates the flow (all three) |
 | Every atom/molecule/organism has previews across its states | ✅ | `@Preview` + Gallery (KMP); gallery screens (Flutter, RN) |
 | Classes and non-trivial functions documented | ✅ | KDoc / dartdoc / TSDoc throughout |
 | Builds and tests verified | ✅ | KMP: iOS + Android compile, 35 host tests, Android APK · Flutter: analyze clean, 23 tests, web build · RN: typecheck clean, 19 tests |
