@@ -9,13 +9,7 @@ import { ActivityIndicator, Pressable, SafeAreaView, Text, View } from 'react-na
 import { useStore } from 'zustand';
 
 import { createOrderUseCase, createReservationUseCase } from './src/domain/usecases';
-import {
-  DemoEventRepository,
-  DemoIdempotencyKeyFactory,
-  DemoOrderRepository,
-  DemoQueueRepository,
-  DemoReservationRepository,
-} from './src/demo/demo';
+import { demoBackend, realBackend } from './src/di/backend';
 import { queryClient, useEventDetailUiState, useEventsUiState } from './src/presentation/queries';
 import { createOrderStore, createReservationStore, createWaitingRoomStore } from './src/presentation/stores';
 import { GalleryScreen } from './src/ui/gallery';
@@ -29,32 +23,45 @@ import {
 } from './src/ui/screens';
 import { tokens } from './src/ui/theme';
 import { AppConfig } from './src/config/appConfig';
+import { errorToUiState, UiState } from './src/core/core';
 import { KyReachabilityChecker } from './src/data/reachability';
 import { createConnectivityStore } from './src/presentation/connectivityStore';
 import { ConnectivityBanner } from './src/ui/ConnectivityBanner';
+import { LoginScreen } from './src/ui/LoginScreen';
 
 type FlowScreen = 'events' | 'detail' | 'waiting' | 'sectors' | 'reservation' | 'order';
 
 function Flow() {
-  const deps = useMemo(() => {
-    const eventRepo = new DemoEventRepository();
-    const queueRepo = new DemoQueueRepository();
-    const reservationRepo = new DemoReservationRepository();
-    const orderRepo = new DemoOrderRepository();
-    const keys = new DemoIdempotencyKeyFactory();
-    return {
-      eventRepo,
-      waiting: createWaitingRoomStore(queueRepo, 800),
-      reservation: createReservationStore(createReservationUseCase(reservationRepo), keys),
-      order: createOrderStore(createOrderUseCase(orderRepo), orderRepo, keys, 600),
-    };
-  }, []);
+  const backend = useMemo(() => (AppConfig.useRealBackend ? realBackend() : demoBackend()), []);
+  const deps = useMemo(
+    () => ({
+      eventRepo: backend.eventRepo,
+      waiting: createWaitingRoomStore(backend.queue, 800),
+      reservation: createReservationStore(createReservationUseCase(backend.reservations), backend.keys),
+      order: createOrderStore(createOrderUseCase(backend.orders), backend.orders, backend.keys, 600),
+    }),
+    [backend],
+  );
+
+  // Demo mode has no session, so it starts "logged in"; real mode gates on sign-in.
+  const [loggedIn, setLoggedIn] = useState(backend.session === null);
+  const [loginState, setLoginState] = useState<UiState<void>>({ kind: 'idle' });
+  const submitLogin = async (email: string, password: string) => {
+    setLoginState({ kind: 'loading' });
+    const result = await backend.session!.login(email, password);
+    if (result.ok) {
+      setLoggedIn(true);
+      setLoginState({ kind: 'idle' });
+    } else {
+      setLoginState(errorToUiState<void>(result.error));
+    }
+  };
 
   const [screen, setScreen] = useState<FlowScreen>('events');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [remainingMs, setRemainingMs] = useState(120000);
 
-  const events = useEventsUiState(deps.eventRepo);
+  const events = useEventsUiState(deps.eventRepo, loggedIn);
   const detail = useEventDetailUiState(deps.eventRepo, selectedId);
   const waitingState = useStore(deps.waiting, (s) => s.state);
   const reservationState = useStore(deps.reservation, (s) => s.state);
@@ -73,6 +80,10 @@ function Flow() {
     }, 1000);
     return () => clearInterval(timer);
   }, [reservationHeld]);
+
+  if (backend.session && !loggedIn) {
+    return <LoginScreen state={loginState} onSubmit={submitLogin} />;
+  }
 
   switch (screen) {
     case 'events':
