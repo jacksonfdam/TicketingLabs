@@ -62,6 +62,18 @@ class AuthSessionTest {
     }
 
     @Test
+    fun has_session_reflects_a_stored_pair_so_a_persisted_token_skips_login() {
+        val json = HttpClientFactory.defaultJson()
+        val client = HttpClientFactory.create(MockEngine { respond("{}", HttpStatusCode.OK) }, ApiConfig("https://localhost/api"))
+        val auth = HttpAuthRepository(ApiExecutor(client, json), json)
+
+        // Empty store (fresh install) → gate on login.
+        assertEquals(false, SessionManager(InMemoryTokenStore(), auth).hasSession())
+        // A pair already in the store (e.g. restored from the secure store) → skip login.
+        assertEquals(true, SessionManager(InMemoryTokenStore(TokenPair("a", "r", 900)), auth).hasSession())
+    }
+
+    @Test
     fun a_failed_refresh_signs_the_session_out() = authTest {
         val json = HttpClientFactory.defaultJson()
         val engine = MockEngine { request ->

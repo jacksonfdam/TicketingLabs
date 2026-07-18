@@ -1,8 +1,8 @@
 package com.ticketinglabs.client.di
 
 import com.ticketinglabs.client.data.ApiConfig
-import com.ticketinglabs.client.data.auth.InMemoryTokenStore
 import com.ticketinglabs.client.data.auth.SessionManager
+import com.ticketinglabs.client.data.auth.createSecureTokenStore
 import com.ticketinglabs.client.data.cache.CachingEventRepository
 import com.ticketinglabs.client.data.http.ApiExecutor
 import com.ticketinglabs.client.data.http.HttpClientFactory
@@ -51,7 +51,7 @@ fun realBackend(config: ApiConfig): Backend {
     val json = HttpClientFactory.defaultJson()
     // Auth calls go through a session-less executor so refresh does not carry a stale token.
     val authExecutor = ApiExecutor(HttpClientFactory.createDefault(config), json)
-    val session = SessionManager(InMemoryTokenStore(), HttpAuthRepository(authExecutor, json))
+    val session = SessionManager(createSecureTokenStore(), HttpAuthRepository(authExecutor, json))
     val executor = ApiExecutor(HttpClientFactory.createDefault(config), json, session = session)
     return Backend(
         events = CachingEventRepository(HttpEventRepository(executor, json)),

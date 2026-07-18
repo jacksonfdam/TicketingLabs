@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import com.ticketinglabs.client.App
+import com.ticketinglabs.client.data.auth.AndroidSecureStore
 
 /**
  * Android entry point. Hands the screen to the shared [App] composable; all UI and state
@@ -18,6 +19,9 @@ import com.ticketinglabs.client.App
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The shared secure TokenStore needs an application Context; hand it over before the
+        // composition builds the backend.
+        AndroidSecureStore.appContext = applicationContext
         enableEdgeToEdge()
         setContent {
             App(onThemeChanged = { ThemeChanged(it) })

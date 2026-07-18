@@ -27,6 +27,10 @@ class SessionManager(
     /** The access token to attach, or null when there is no session. */
     fun accessToken(): String? = store.current()?.accessToken
 
+    /** True when a token pair is already stored — e.g. restored from the secure store on cold
+     * start — so the app can skip the login screen. */
+    fun hasSession(): Boolean = store.current() != null
+
     suspend fun login(email: String, password: String): Outcome<TokenPair> =
         when (val result = auth.login(email, password)) {
             is Outcome.Success -> {

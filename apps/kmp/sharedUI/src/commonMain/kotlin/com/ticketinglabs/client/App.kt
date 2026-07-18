@@ -70,8 +70,9 @@ fun App(onThemeChanged: @Composable (isDark: Boolean) -> Unit = {}) {
         val reservationVm = viewModel { ReservationViewModel(CreateReservationUseCase(backend.reservations), backend.keys) }
         val orderVm = viewModel { OrderViewModel(CreateOrderUseCase(backend.orders), backend.orders, backend.keys, pollIntervalMs = 600) }
 
-        // Demo mode has no session, so it starts "logged in"; real mode gates on sign-in.
-        var loggedIn by remember { mutableStateOf(backend.session == null) }
+        // Demo mode has no session, so it starts "logged in". Real mode gates on sign-in, but a
+        // refresh token persisted in the secure store (read synchronously) restores the session.
+        var loggedIn by remember { mutableStateOf(backend.session?.hasSession() ?: true) }
         var loginState by remember { mutableStateOf<UiState<Unit>>(UiState.Idle) }
 
         var screen by remember { mutableStateOf(Screen.Events) }
