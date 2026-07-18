@@ -6,9 +6,9 @@ they are indistinguishable. From the developer's side, that is the exhibit.
 
 | App | Stack | Status |
 |---|---|---|
-| [`kmp/`](kmp/README.md) | Kotlin Multiplatform + Compose Multiplatform | built, verified (iOS/Android compile, 35 host tests, Android APK) |
-| [`flutter/`](flutter/README.md) | Flutter + Dart | built, verified (analyze clean, 23 tests, web build) |
-| [`react-native/`](react-native/README.md) | Expo, New Architecture | built, verified (typecheck clean, 19 tests) |
+| [`kmp/`](kmp/README.md) | Kotlin Multiplatform + Compose Multiplatform | built, verified (iOS/Android compile, 41 host tests, Android APK) |
+| [`flutter/`](flutter/README.md) | Flutter + Dart | built, verified (analyze clean, 33 tests, web build) |
+| [`react-native/`](react-native/README.md) | Expo, New Architecture | built, verified (typecheck clean, 25 tests) |
 
 Each app's own README has the specifics. In short:
 
@@ -33,7 +33,9 @@ local IP. See [the tunnel recipe](../docs/recipes/expose-with-a-tunnel.md). (Bar
 server). To consume the real gateway — real HTTP repositories, a session with refresh
 rotation, and a login screen — flip one flag: KMP `AppConfig.USE_REAL_BACKEND = true`,
 Flutter `--dart-define=USE_REAL_BACKEND=true`, React Native `EXPO_PUBLIC_USE_REAL_BACKEND=true`.
-Seeded demo login: `buyer@ticketing.local` / `password123`.
+Seeded demo login: `buyer@ticketing.local` / `password123`. In real mode the refresh token is
+kept in the platform secure store (iOS Keychain, Android EncryptedSharedPreferences/Keystore,
+`expo-secure-store`) behind one `TokenStore` port, so a signed-in session survives a restart.
 
 **Offline-first, no infinite loading** — all three behave the same way: on start (and on
 Retry) a bounded reachability probe hits `{baseUrl}/health` with a short timeout and resolves

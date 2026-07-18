@@ -112,6 +112,18 @@ export default function ClientsPage() {
             <Link href="/recipes/expose-with-a-tunnel">the tunnel recipe</Link>.
           </p>
         </div>
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5">
+          <h3 className="text-base font-bold">Demo or real, with a secure session</h3>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Each app runs on in-memory demo data by default (no server needed). Flip one flag
+            (<code>USE_REAL_BACKEND</code>) and it talks to the gateway instead: real HTTP repositories,
+            a login screen, and a session that refreshes and rotates its token on a 401. The refresh
+            token is kept in the platform secure store — iOS Keychain, Android
+            EncryptedSharedPreferences, <code>expo-secure-store</code> — behind one{' '}
+            <code>TokenStore</code> port, so a signed-in session survives a restart. See{' '}
+            <Link href="/recipes/client-token-refresh-rotation">the token-refresh recipe</Link>.
+          </p>
+        </div>
       </div>
 
       <section id="architecture" className="mt-14 scroll-mt-20 border-t border-[var(--line)] pt-8">

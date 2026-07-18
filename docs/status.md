@@ -94,7 +94,7 @@ The three clients — Kotlin Multiplatform, Flutter, React Native — against th
 | Every async operation resolves into an explicit modelled state; no silent catches | ✅ | `Outcome`/`AppError` taxonomy + `UiState` in all three, unit-tested |
 | Offline-first: bounded reachability check, no infinite loading | ✅ | `ReachabilityChecker` + connectivity state; request timeouts throughout; tested in all three |
 | Payment matrix incl. unknown-outcome (no double-charge, no false failure) | ✅ | reconcile-and-poll use case + state holder; unit-tested (unknown → `PaymentUnknown`, same idempotency key) |
-| Token handling: access in memory, refresh rotated, global sign-out | ✅ | `SessionManager` (single-flight refresh-on-401, rotation, sign-out); tested in all three (KMP end-to-end via MockEngine) |
+| Token handling: refresh in the platform secure store, rotated, global sign-out | ✅ | `SessionManager` (single-flight refresh-on-401, rotation, sign-out) over a `TokenStore` port; real mode backs it with Keychain / EncryptedSharedPreferences / `expo-secure-store`; tested in all three (KMP end-to-end via MockEngine) |
 | Runs against the real gateway, not just demo data | ✅ | a `Backend` factory + `USE_REAL_BACKEND` flag builds real HTTP repositories with a session; a login screen gates the flow (all three) |
 | Every atom/molecule/organism has previews across its states | ✅ | `@Preview` + Gallery (KMP); gallery screens (Flutter, RN) |
 | Classes and non-trivial functions documented | ✅ | KDoc / dartdoc / TSDoc throughout |
@@ -103,9 +103,12 @@ The three clients — Kotlin Multiplatform, Flutter, React Native — against th
 
 Scoped, and stated plainly: React Native generates its wire DTO types from the contract
 (`openapi-typescript`, with drift-proof enum maps); KMP and Flutter still hand-write DTOs (the
-OpenAPI Generator path is documented). Secure token storage uses an in-memory store in the
-demo, with the platform secure store (Keychain / Keystore / expo-secure-store) documented
-behind the same port. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
+OpenAPI Generator path is documented). Secure token storage uses an in-memory store in the demo;
+in real mode all three back the refresh token with the platform secure store behind the same
+`TokenStore` port — iOS Keychain and Android EncryptedSharedPreferences on KMP (a synchronous
+`expect`/`actual`), `flutter_secure_storage` on Flutter and `expo-secure-store` on React Native
+(async, bridged by an in-memory mirror hydrated on startup). A persisted session is restored on
+cold start; sign-out clears the store. Events lists render lazily (LazyColumn / ListView.builder / FlatList) and
 server state is cached with invalidation on reservation (a TTL decorator on KMP/Flutter,
 TanStack Query on RN). Certificate/public-key pinning is documented per platform with the
 dev bypass (a production posture, off in the tunnel/localhost dev flow). Contract codegen is

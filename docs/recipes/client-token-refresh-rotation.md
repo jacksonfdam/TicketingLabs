@@ -84,8 +84,14 @@ a failed refresh clears the store and sets the signed-out flag. KMP drives it th
 
 ## Trade-offs
 
-The refresh token lives in memory in the demo (`InMemoryTokenStore`); a production build swaps
-in Keychain / Keystore / expo-secure-store behind the same port — no change above it. Rotating
+The refresh token lives in memory in the demo (`InMemoryTokenStore`); real mode swaps in the
+platform secure store behind the same `TokenStore` port — no change above it. The port is
+synchronous (the HTTP layer reads the access token on every request), and the platforms differ in
+how they meet that: KMP's Keychain and EncryptedSharedPreferences reads are themselves synchronous
+(a plain `expect`/`actual`), while Flutter's `flutter_secure_storage` and React Native's
+`expo-secure-store` are async, so those two keep an in-memory mirror and write through, hydrating
+the persisted session once at startup. Either way a refresh token survives a cold start and
+sign-out wipes it. Rotating
 on every refresh means a refresh token is single-use, which is safer but means a lost race (two
 devices, one stale token) forces a real re-login; that is the correct trade for a flash sale,
 where a compromised long-lived token is the scarier outcome.
