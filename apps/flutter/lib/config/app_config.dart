@@ -17,4 +17,9 @@ class AppConfig {
 
   /// How long a reachability probe waits before declaring the server unreachable.
   static const Duration reachabilityTimeout = Duration(seconds: 4);
+
+  /// When false the app runs on in-memory demo data (works with no backend). Enable the real
+  /// gateway with `--dart-define=USE_REAL_BACKEND=true`: real HTTP repositories, a session with
+  /// refresh rotation, and a login screen gating the flow.
+  static const bool useRealBackend = bool.fromEnvironment('USE_REAL_BACKEND', defaultValue: false);
 }
