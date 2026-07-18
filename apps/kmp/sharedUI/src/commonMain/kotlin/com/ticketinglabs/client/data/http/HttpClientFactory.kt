@@ -2,6 +2,7 @@ package com.ticketinglabs.client.data.http
 
 import com.ticketinglabs.client.data.ApiConfig
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
@@ -35,21 +36,29 @@ object HttpClientFactory {
      * @param engine the platform HTTP engine (or MockEngine in tests).
      * @param config the base URL and timeouts; the only thing the app knows about the backend.
      */
-    fun create(engine: HttpClientEngine, config: ApiConfig): HttpClient {
+    fun create(engine: HttpClientEngine, config: ApiConfig): HttpClient =
+        HttpClient(engine) { configure(config) }
+
+    /**
+     * Builds a client with the engine already on the classpath (OkHttp on Android, Darwin on
+     * iOS) — no engine argument, so the real app needs no per-platform wiring. Tests use
+     * [create] with a MockEngine instead.
+     */
+    fun createDefault(config: ApiConfig): HttpClient = HttpClient { configure(config) }
+
+    private fun HttpClientConfig<*>.configure(config: ApiConfig) {
         val base = if (config.baseUrl.endsWith("/")) config.baseUrl else config.baseUrl + "/"
-        return HttpClient(engine) {
-            expectSuccess = false // the executor inspects status itself; no thrown 4xx/5xx
-            defaultRequest { url(base) }
-            install(HttpTimeout) {
-                requestTimeoutMillis = config.requestTimeoutMs
-                connectTimeoutMillis = config.connectTimeoutMs
-            }
-            install(HttpRequestRetry) {
-                maxRetries = config.maxRetries
-                retryOnServerErrors(maxRetries)
-                retryOnException(maxRetries, retryOnTimeout = true)
-                exponentialDelay()
-            }
+        expectSuccess = false // the executor inspects status itself; no thrown 4xx/5xx
+        defaultRequest { url(base) }
+        install(HttpTimeout) {
+            requestTimeoutMillis = config.requestTimeoutMs
+            connectTimeoutMillis = config.connectTimeoutMs
+        }
+        install(HttpRequestRetry) {
+            maxRetries = config.maxRetries
+            retryOnServerErrors(maxRetries)
+            retryOnException(maxRetries, retryOnTimeout = true)
+            exponentialDelay()
         }
     }
 }

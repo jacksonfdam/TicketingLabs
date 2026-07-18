@@ -17,4 +17,11 @@ object AppConfig {
 
     /** How long a reachability probe waits before declaring the server unreachable. */
     const val REACHABILITY_TIMEOUT_MS: Long = 4_000
+
+    /**
+     * When false the app runs on in-memory demo data (works with no backend). Set true to
+     * consume the real gateway at [DEFAULT_BASE_URL]: real HTTP repositories, a session with
+     * refresh rotation, and a login screen gating the flow.
+     */
+    const val USE_REAL_BACKEND: Boolean = false
 }
