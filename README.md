@@ -1,5 +1,7 @@
 # Ticketing Labs
 
+[![CI](https://github.com/jacksonfdam/TicketingLabs/actions/workflows/ci.yml/badge.svg)](https://github.com/jacksonfdam/TicketingLabs/actions/workflows/ci.yml)
+
 One flash-sale ticketing system, implemented in seven backend frameworks, served by a
 single frontend that has no idea which backend is answering. It is a teaching lab, not
 a product. The goal is to show the same hard problems being solved seven different
