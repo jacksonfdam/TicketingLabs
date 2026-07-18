@@ -11,10 +11,12 @@ import { EventRepository } from '../domain/repositories';
 
 export const queryClient = new QueryClient();
 
-/** Fetches and caches the events list, exposing the result as a [UiState]. */
-export function useEventsUiState(repo: EventRepository): { state: UiState<Event[]>; refetch: () => void } {
+/** Fetches and caches the events list, exposing the result as a [UiState]. `enabled` gates the
+ * fetch (e.g. until the user has signed in). */
+export function useEventsUiState(repo: EventRepository, enabled = true): { state: UiState<Event[]>; refetch: () => void } {
   const query = useQuery({
     queryKey: ['events'],
+    enabled,
     queryFn: async () => {
       const result = await repo.listEvents();
       if (!result.ok) throw result.error;

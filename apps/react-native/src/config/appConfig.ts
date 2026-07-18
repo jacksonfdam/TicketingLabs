@@ -14,4 +14,10 @@ export const AppConfig = {
   baseUrl: process.env.EXPO_PUBLIC_BASE_URL ?? 'https://localhost/api',
   /** How long a reachability probe waits before declaring the server unreachable. */
   reachabilityTimeoutMs: 4000,
+  /**
+   * When false the app runs on in-memory demo data (works with no backend). Enable the real
+   * gateway with EXPO_PUBLIC_USE_REAL_BACKEND=true: real HTTP repositories, a session with
+   * refresh rotation, and a login screen gating the flow.
+   */
+  useRealBackend: process.env.EXPO_PUBLIC_USE_REAL_BACKEND === 'true',
 } as const;
